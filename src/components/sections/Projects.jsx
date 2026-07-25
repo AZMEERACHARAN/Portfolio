@@ -116,7 +116,6 @@ const Projects = () => {
                   ) : (
                     <>
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent-2/30 opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-700" />
-                      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10 mix-blend-overlay" />
                       <Layers className="w-12 h-12 text-white/30 z-10 group-hover:scale-110 transition-transform duration-500" />
                     </>
                   )}
@@ -198,7 +197,6 @@ const Projects = () => {
                   ) : (
                     <>
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent-2/30 opacity-40" />
-                      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10 mix-blend-overlay" />
                     </>
                   )}
                   <div className="relative z-10 text-center px-6 mt-8">

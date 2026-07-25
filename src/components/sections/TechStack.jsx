@@ -151,7 +151,7 @@ const TechStack = () => {
     <section id="skills" className="relative py-32 min-h-screen overflow-hidden">
       {/* Background glow & particles */}
       <div className="absolute inset-0 pointer-events-none -z-10">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-[0.03]" />
+        
         <motion.div 
           animate={{ scale: [1, 1.2, 1], x: [0, -30, 0], y: [0, 40, 0], opacity: [0.1, 0.15, 0.1] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}

@@ -113,23 +113,6 @@ const MagneticButton = ({ children, className, href }) => {
   );
 };
 
-const FloatingBadge = ({ icon: Icon, text, delay, style, yAnim, className = "" }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0 }}
-    animate={{ opacity: 1, scale: 1, y: yAnim || [-5, 5, -5] }}
-    transition={{ 
-      opacity: { delay, duration: 0.5 }, 
-      scale: { delay, type: "spring", stiffness: 200, damping: 20 },
-      y: { duration: Math.random() * 2 + 4, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
-    }}
-    className={`absolute z-20 flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0a0a0f]/80 border border-white/10 backdrop-blur-xl shadow-[0_10px_20px_rgba(0,0,0,0.3)] ${className}`}
-    style={{ ...style, transform: "translateZ(70px)" }} // 3D pop effect
-  >
-    {Icon && <Icon className="w-4 h-4 text-primary-2" />}
-    <span className="text-xs font-mono font-semibold text-white/90 whitespace-nowrap">{text}</span>
-  </motion.div>
-);
-
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [heroData, setHeroData] = useState(null);
@@ -210,8 +193,6 @@ const Hero = () => {
           className="hidden md:block absolute bottom-0 right-[-10%] w-[500px] h-[500px] bg-accent/30 rounded-full blur-[120px]"
         />
         
-        {/* Animated Mesh/Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
       </div>
 
       <div className="container max-w-7xl mx-auto px-6 relative z-10 mt-10 lg:mt-0">
@@ -385,19 +366,7 @@ const Hero = () => {
                       e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(settings?.ownerName || heroData.name || 'Admin')}&size=400&background=7c6bff&color=fff`;
                     }}
                   />
-                  {/* Fallback pattern if image is missing */}
-                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%,transparent_100%)] bg-[size:20px_20px] -z-10" />
                 </div>
-
-                {/* Floating Technology Badges */}
-                <FloatingBadge text="React" icon={Code} delay={0.5} style={{ top: '15%', left: '-8%' }} yAnim={[-4, 4, -4]} className="hidden md:flex" />
-                <FloatingBadge text="JavaScript" icon={Terminal} delay={0.7} style={{ top: '5%', right: '5%' }} yAnim={[-6, 6, -6]} />
-                <FloatingBadge text="Tailwind CSS" delay={0.9} style={{ bottom: '25%', left: '-12%' }} yAnim={[-3, 3, -3]} className="hidden md:flex" />
-                <FloatingBadge text="AI" icon={Sparkles} delay={1.1} style={{ bottom: '15%', right: '-5%' }} yAnim={[-5, 5, -5]} />
-                <FloatingBadge text="Python" delay={1.3} style={{ top: '40%', right: '-15%' }} yAnim={[-7, 7, -7]} className="hidden md:flex" />
-                <FloatingBadge text="Node.js" icon={Database} delay={1.5} style={{ top: '35%', left: '-15%' }} yAnim={[-4, 4, -4]} className="hidden md:flex" />
-                <FloatingBadge text="Git" delay={1.7} style={{ bottom: '-5%', left: '20%' }} yAnim={[-3, 3, -3]} />
-                <FloatingBadge text="GitHub" delay={1.9} style={{ bottom: '5%', right: '20%' }} yAnim={[-5, 5, -5]} />
               </div>
             </TiltCard>
           </motion.div>
