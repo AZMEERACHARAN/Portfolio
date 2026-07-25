@@ -62,8 +62,27 @@ const About = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const aboutData = usePortfolioData('aboutData') || {};
-  const cards = aboutData.cards || [];
-
+  const cards = aboutData.cards && aboutData.cards.length > 0 ? aboutData.cards : [
+    { 
+      title: 'Education', 
+      icon: 'GraduationCap', 
+      description: 'B.Tech in Computer Science and Engineering, focusing on advanced software engineering and modern web technologies.', 
+      items: ['Data Structures & Algorithms', 'Web Development', 'Database Management'] 
+    },
+    { 
+      title: 'Passion', 
+      icon: 'Flame', 
+      description: 'I am deeply passionate about building intuitive and dynamic user interfaces that provide exceptional user experiences.', 
+      items: ['UI/UX Design', 'Interactive Animations', 'Frontend Architecture'] 
+    },
+    { 
+      title: 'Mission', 
+      icon: 'Target', 
+      description: 'To create impactful software solutions that solve real-world problems and continuously evolve as a developer.', 
+      items: ['Continuous Learning', 'Building Scalable Apps', 'Performance Optimization'], 
+      fullWidth: true 
+    }
+  ];
   return (
     <section id="about" className="relative py-32 overflow-hidden" ref={containerRef}>
       {/* Aurora Background for About Section */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Code2, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Code2, Loader2, Sparkles } from 'lucide-react';
 import { subscribeToSkills, migrateSkillsToFirestore } from '../../services/skillsService';
 
 const CAT_COLORS = {
@@ -20,6 +20,7 @@ const Skills = () => {
   const [skills, setSkills] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hoveredSkill, setHoveredSkill] = useState(null);
 
   useEffect(() => {
     let unsubscribe;
@@ -155,6 +156,8 @@ const Skills = () => {
                       viewport={{ once: true }}
                       transition={{ delay: catIdx * 0.05 + idx * 0.04 }}
                       whileHover={{ scale: 1.06, y: -4 }}
+                      onMouseEnter={() => setHoveredSkill(skill)}
+                      onMouseLeave={() => setHoveredSkill(null)}
                       className={`px-5 py-2.5 rounded-full bg-gradient-to-br border text-sm font-medium text-white backdrop-blur-md transition-all duration-300 cursor-default ${CAT_COLORS[category] || CAT_COLORS.Other}`}
                     >
                       {skill.name}
@@ -165,6 +168,33 @@ const Skills = () => {
             ))}
           </div>
         )}
+
+        {/* Center Hover Details Display */}
+        <AnimatePresence>
+          {hoveredSkill && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: '-50%', x: '-50%' }}
+              animate={{ opacity: 1, scale: 1, y: '-50%', x: '-50%' }}
+              exit={{ opacity: 0, scale: 0.9, y: '-40%', x: '-50%' }}
+              transition={{ duration: 0.3 }}
+              className="hidden md:flex flex-col items-center justify-center fixed left-1/2 top-1/2 z-[100] pointer-events-none w-80 p-8 rounded-3xl bg-[#0a0d1c]/95 backdrop-blur-2xl border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent-2/20 border border-white/10 flex items-center justify-center mb-6 shadow-inner">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3 text-center">{hoveredSkill.name}</h3>
+              {hoveredSkill.description && (
+                <p className="text-sm text-white/70 text-center leading-relaxed mb-6">{hoveredSkill.description}</p>
+              )}
+              {hoveredSkill.level && (
+                <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-medium text-primary-2 shadow-[inset_0_0_10px_rgba(255,255,255,0.05)]">
+                  Proficiency: {hoveredSkill.level}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
     </section>
   );

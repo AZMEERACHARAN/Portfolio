@@ -124,14 +124,14 @@ const AdminDashboard = () => {
       {/* Welcome banner */}
       <motion.div
         variants={stagger.item}
-        className={`${card} p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden`}
+        className={`${card} p-4 md:p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 relative overflow-hidden`}
       >
         <div className="absolute -right-20 -top-20 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-20 -bottom-20 w-72 h-72 bg-accent-2/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 flex-1">
           <p className="text-[--text-muted] text-sm font-medium">{greeting} 👋</p>
-          <h2 className="text-white text-3xl font-bold mt-1 tracking-tight">
+          <h2 className="text-white text-2xl md:text-3xl font-bold mt-1 tracking-tight">
             Welcome back, <span className="text-gradient">Admin</span>
           </h2>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3">
@@ -147,9 +147,9 @@ const AdminDashboard = () => {
           </div>
         </div>
         
-        <div className="relative z-10 flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 shrink-0">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-            <Clock className="w-6 h-6" />
+        <div className="relative z-10 flex items-center gap-3 md:gap-4 bg-white/5 border border-white/10 rounded-2xl p-3 md:p-4 shrink-0">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <Clock className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
             <p className="text-white font-bold text-lg leading-tight">{formattedTime}</p>
@@ -163,13 +163,13 @@ const AdminDashboard = () => {
         {STATS_CARDS.map(s => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className={`${card} p-5 bg-gradient-to-br ${s.color} border ${s.border} flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-default group`}>
-              <div className={`w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                <Icon className={`w-5 h-5 ${s.icon_color}`} />
+            <div key={s.label} className={`${card} p-3 md:p-5 bg-gradient-to-br ${s.color} border ${s.border} flex items-center gap-2 md:gap-4 hover:scale-[1.02] transition-transform cursor-default group`}>
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                <Icon className={`w-4 h-4 md:w-5 md:h-5 ${s.icon_color}`} />
               </div>
               <div>
-                <p className="text-white text-2xl font-bold leading-none">{s.value}</p>
-                <p className="text-white/60 text-xs mt-1.5 font-medium">{s.label}</p>
+                <p className="text-white text-lg md:text-2xl font-bold leading-none">{s.value}</p>
+                <p className="text-white/60 text-[10px] md:text-xs mt-1 md:mt-1.5 font-medium">{s.label}</p>
               </div>
             </div>
           );
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
       {/* Recent Activity & Quick actions row */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <motion.div variants={stagger.item} className={`${card} p-6 lg:col-span-2 flex flex-col`}>
+        <motion.div variants={stagger.item} className={`${card} p-4 md:p-6 lg:col-span-2 flex flex-col`}>
           <div className="flex items-center justify-between mb-6">
             <p className="text-white font-bold text-base">Recent Activity</p>
           </div>
@@ -212,7 +212,7 @@ const AdminDashboard = () => {
 
         <div className="space-y-6">
           {/* Quick actions */}
-          <motion.div variants={stagger.item} className={`${card} p-6`}>
+          <motion.div variants={stagger.item} className={`${card} p-4 md:p-6`}>
             <p className="text-white font-bold text-base mb-6">Quick Actions</p>
             <div className="space-y-3">
               {QUICK_ACTIONS.map(a => (
@@ -231,7 +231,7 @@ const AdminDashboard = () => {
           </motion.div>
 
           {/* Portfolio Health */}
-          <motion.div variants={stagger.item} className={`${card} p-6`}>
+          <motion.div variants={stagger.item} className={`${card} p-4 md:p-6`}>
             <p className="text-white font-bold text-base mb-6">Portfolio Health</p>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
@@ -264,7 +264,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Recent messages */}
-      <motion.div variants={stagger.item} className={`${card} p-6`}>
+      <motion.div variants={stagger.item} className={`${card} p-4 md:p-6`}>
         <div className="flex items-center justify-between mb-6">
           <p className="text-white font-bold text-base">Recent Messages</p>
           <button
@@ -310,7 +310,7 @@ const AdminDashboard = () => {
       </motion.div>
 
       {/* Recent Projects */}
-      <motion.div variants={stagger.item} className={`${card} p-6`}>
+      <motion.div variants={stagger.item} className={`${card} p-4 md:p-6`}>
         <div className="flex items-center justify-between mb-6">
           <p className="text-white font-bold text-base">Recent Projects</p>
           <button
