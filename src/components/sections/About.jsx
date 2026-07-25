@@ -60,7 +60,7 @@ const AboutCard = ({ id, title, icon: Icon, description, delay, items, fullWidth
   );
 };
 
-const About = () => {
+const About = React.memo(() => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const [expandedId, setExpandedId] = React.useState(null);
@@ -93,12 +93,12 @@ const About = () => {
         <motion.div 
           animate={{ scale: [1, 1.1, 1], x: [0, 50, 0], y: [0, -30, 0], opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="hidden md:block absolute top-1/4 right-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px]"
+          className="hidden md:block absolute top-1/4 right-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px] will-change-transform"
         />
         <motion.div 
           animate={{ scale: [1, 1.2, 1], x: [0, -50, 0], y: [0, 50, 0], opacity: [0.1, 0.15, 0.1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="hidden md:block absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]"
+          className="hidden md:block absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] will-change-transform"
         />
       </div>
 
@@ -205,6 +205,6 @@ const About = () => {
       </div>
     </section>
   );
-};
+});
 
 export default About;

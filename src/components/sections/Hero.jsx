@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'framer-motion';
 import { ArrowRight, Download, Code, Terminal, Sparkles, Database, Layers, Loader2 } from 'lucide-react';
 import { getHeroData, subscribeToHeroData } from '../../services/heroService';
 import { subscribeToSettings } from '../../services/settingsService';
@@ -130,14 +130,18 @@ const FloatingBadge = ({ icon: Icon, text, delay, yAnim, className = "" }) => (
   </motion.div>
 );
 
-const Hero = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+const Hero = React.memo(() => {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
   const [heroData, setHeroData] = useState(null);
   const [settings, setSettings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const handleMouseMove = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
+    const handleMouseMove = (e) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+    };
     window.addEventListener('mousemove', handleMouseMove);
     
     let isHeroLoaded = false;
@@ -189,10 +193,10 @@ const Hero = () => {
     <section id="home" className="relative min-h-screen pt-32 pb-20 flex items-center overflow-hidden selection:bg-primary/30">
       
       {/* Dynamic Mouse Spotlight */}
-      <div 
+      <motion.div 
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300 hidden md:block"
         style={{
-          background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(124, 107, 255, 0.05), transparent 40%)`
+          background: useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(124, 107, 255, 0.05), transparent 40%)`
         }}
       />
 
@@ -202,12 +206,12 @@ const Hero = () => {
         <motion.div 
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="hidden md:block absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary/30 rounded-full blur-[120px]"
+          className="hidden md:block absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary/30 rounded-full blur-[120px] will-change-transform"
         />
         <motion.div 
           animate={{ scale: [1, 1.3, 1], x: [0, -40, 0], y: [0, 50, 0], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="hidden md:block absolute bottom-0 right-[-10%] w-[500px] h-[500px] bg-accent/30 rounded-full blur-[120px]"
+          className="hidden md:block absolute bottom-0 right-[-10%] w-[500px] h-[500px] bg-accent/30 rounded-full blur-[120px] will-change-transform"
         />
         
       </div>
@@ -359,7 +363,7 @@ const Hero = () => {
             <motion.div 
               animate={{ rotate: 360 }}
               transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-              className="absolute w-[450px] h-[450px] rounded-full bg-gradient-to-tr from-primary/30 via-accent-2/10 to-accent-2/30 blur-3xl -z-10"
+              className="absolute w-[450px] h-[450px] rounded-full bg-gradient-to-tr from-primary/30 via-accent-2/10 to-accent-2/30 blur-3xl -z-10 will-change-transform"
             />
             
             <TiltCard>
@@ -416,6 +420,6 @@ const Hero = () => {
       </motion.div>
     </section>
   );
-};
+});
 
 export default Hero;

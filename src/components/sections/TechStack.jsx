@@ -110,7 +110,7 @@ const TechCard = ({ tech }) => {
   );
 };
 
-const TechStack = () => {
+const TechStack = React.memo(() => {
   const [technologies, setTechnologies] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -155,12 +155,12 @@ const TechStack = () => {
         <motion.div 
           animate={{ scale: [1, 1.2, 1], x: [0, -30, 0], y: [0, 40, 0], opacity: [0.1, 0.15, 0.1] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="hidden md:block absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"
+          className="hidden md:block absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] will-change-transform"
         />
         <motion.div 
           animate={{ scale: [1, 1.1, 1], x: [0, 40, 0], y: [0, -30, 0], opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="hidden md:block absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent-2/20 rounded-full blur-[100px]"
+          className="hidden md:block absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent-2/20 rounded-full blur-[100px] will-change-transform"
         />
       </div>
 
@@ -225,6 +225,6 @@ const TechStack = () => {
       </div>
     </section>
   );
-};
+});
 
 export default TechStack;

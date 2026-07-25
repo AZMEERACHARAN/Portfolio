@@ -39,7 +39,7 @@ const TestimonialCard = ({ testimonial }) => (
   </div>
 );
 
-const Testimonials = () => {
+const Testimonials = React.memo(() => {
   const [testimonials, setTestimonials] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -109,7 +109,7 @@ const Testimonials = () => {
           <motion.div 
             animate={{ x: ["0%", "-50%"] }}
             transition={{ ease: "linear", duration: 25, repeat: Infinity }}
-            className="flex items-stretch whitespace-nowrap py-4"
+            className="flex items-stretch whitespace-nowrap py-4 will-change-transform"
             style={{ width: "fit-content" }}
           >
             {/* Duplicate the array to create seamless loop */}
@@ -122,6 +122,6 @@ const Testimonials = () => {
 
     </section>
   );
-};
+});
 
 export default Testimonials;

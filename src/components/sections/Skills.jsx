@@ -16,7 +16,7 @@ const CAT_COLORS = {
 
 const CATEGORIES_ORDER = ['Frontend', 'Backend', 'Language', 'Database', 'DevOps', 'Tools', 'Design', 'Other'];
 
-const Skills = () => {
+const Skills = React.memo(() => {
   const [skills, setSkills] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -76,12 +76,12 @@ const Skills = () => {
         <motion.div
           animate={{ scale: [1, 1.1, 1], x: [0, -40, 0], opacity: [0.08, 0.15, 0.08] }}
           transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-          className="hidden md:block absolute top-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]"
+          className="hidden md:block absolute top-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] will-change-transform"
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 60, 0], opacity: [0.08, 0.12, 0.08] }}
           transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="hidden md:block absolute bottom-0 right-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px]"
+          className="hidden md:block absolute bottom-0 right-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px] will-change-transform"
         />
       </div>
 
@@ -198,6 +198,6 @@ const Skills = () => {
       </div>
     </section>
   );
-};
+});
 
 export default Skills;

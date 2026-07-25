@@ -63,7 +63,7 @@ const ThemeToggle = () => {
   );
 };
 
-const Navbar = () => {
+const Navbar = React.memo(() => {
   const [activeSection, setActiveSection] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
@@ -151,7 +151,7 @@ const Navbar = () => {
           onMouseMove={handleMouseMove}
           onMouseEnter={() => setIsHoveringNav(true)}
           onMouseLeave={() => setIsHoveringNav(false)}
-          style={{ width: navWidth, y: navY, backdropFilter: backdropBlur }}
+          style={{ width: navWidth, y: navY, backdropFilter: backdropBlur, willChange: 'transform, opacity, backdrop-filter, width' }}
           className="pointer-events-auto relative flex items-center justify-between px-4 py-2 lg:px-6 lg:py-3 rounded-[2rem] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden transition-all max-w-7xl"
         >
           {/* Dynamic Background opacity */}
@@ -319,6 +319,6 @@ const Navbar = () => {
       </AnimatePresence>
     </>
   );
-};
+});
 
 export default Navbar;
