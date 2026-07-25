@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../components/sections/Navbar';
 import Footer from '../components/sections/Footer';
 import FAB from '../components/FAB';
-import AnimatedCursor from '../components/AnimatedCursor';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { motion, useScroll, useSpring } from 'framer-motion';
 
@@ -22,7 +21,6 @@ const PortfolioLayout = () => {
         style={{ scaleX }}
       />
       <Navbar />
-      <AnimatedCursor />
       <main className="flex-grow">
         <Outlet />
       </main>
