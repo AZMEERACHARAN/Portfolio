@@ -288,6 +288,6 @@ const AnimatedBackground = React.memo(() => {
       className="fixed inset-0 w-full h-full pointer-events-none z-[-1] overflow-hidden"
     />
   );
-};
+});
 
 export default AnimatedBackground;
