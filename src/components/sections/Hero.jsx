@@ -113,6 +113,23 @@ const MagneticButton = ({ children, className, href }) => {
   );
 };
 
+const FloatingBadge = ({ icon: Icon, text, delay, yAnim, className = "" }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0 }}
+    animate={{ opacity: 1, scale: 1, y: yAnim || [-5, 5, -5] }}
+    transition={{ 
+      opacity: { delay, duration: 0.5 }, 
+      scale: { delay, type: "spring", stiffness: 200, damping: 20 },
+      y: { duration: Math.random() * 2 + 4, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
+    }}
+    className={`absolute z-20 flex items-center gap-1.5 md:gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg md:rounded-xl bg-[#0a0a0f]/80 border border-white/10 backdrop-blur-xl shadow-[0_10px_20px_rgba(0,0,0,0.3)] ${className}`}
+    style={{ transform: "translateZ(70px)" }} // 3D pop effect
+  >
+    {Icon && <Icon className="w-3 h-3 md:w-4 md:h-4 text-primary-2" />}
+    <span className="text-[10px] md:text-xs font-mono font-semibold text-white/90 whitespace-nowrap">{text}</span>
+  </motion.div>
+);
+
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [heroData, setHeroData] = useState(null);
@@ -367,6 +384,16 @@ const Hero = () => {
                     }}
                   />
                 </div>
+                
+                {/* Floating Technology Badges */}
+                <FloatingBadge text="React" icon={Code} delay={0.5} yAnim={[-4, 4, -4]} className="top-[5%] -left-[2%] md:top-[15%] md:-left-[8%]" />
+                <FloatingBadge text="JavaScript" icon={Terminal} delay={0.7} yAnim={[-6, 6, -6]} className="-top-[2%] right-[5%] md:top-[5%] md:right-[5%]" />
+                <FloatingBadge text="Tailwind CSS" delay={0.9} yAnim={[-3, 3, -3]} className="bottom-[25%] -left-[4%] md:bottom-[25%] md:-left-[12%]" />
+                <FloatingBadge text="AI" icon={Sparkles} delay={1.1} yAnim={[-5, 5, -5]} className="bottom-[15%] -right-[2%] md:bottom-[15%] md:-right-[5%]" />
+                <FloatingBadge text="Python" delay={1.3} yAnim={[-7, 7, -7]} className="top-[40%] -right-[5%] md:top-[40%] md:-right-[15%]" />
+                <FloatingBadge text="Node.js" icon={Database} delay={1.5} yAnim={[-4, 4, -4]} className="top-[35%] -left-[5%] md:top-[35%] md:-left-[15%]" />
+                <FloatingBadge text="Git" delay={1.7} yAnim={[-3, 3, -3]} className="-bottom-[2%] left-[10%] md:-bottom-[5%] md:left-[20%]" />
+                <FloatingBadge text="GitHub" delay={1.9} yAnim={[-5, 5, -5]} className="bottom-[2%] right-[10%] md:bottom-[5%] md:right-[20%]" />
               </div>
             </TiltCard>
           </motion.div>
