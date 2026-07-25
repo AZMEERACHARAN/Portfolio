@@ -186,38 +186,43 @@ const Projects = () => {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="overflow-y-auto w-full h-full">
-                {/* Modal Hero Image */}
-                <motion.div
-                  layoutId={`project-image-${selectedProject.id}`}
-                  className="w-full h-56 md:h-72 relative flex items-center justify-center border-b border-white/10 bg-[#060812]"
-                >
-                  {selectedProject.image ? (
-                    <img src={selectedProject.image} alt={selectedProject.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
+              <div className="overflow-y-auto overflow-x-hidden w-full h-full flex flex-col">
+                {/* Modal Hero Container */}
+                <div className="relative flex flex-col md:block w-full flex-shrink-0">
+                  {/* Modal Hero Image */}
+                  <motion.div
+                    layoutId={`project-image-${selectedProject.id}`}
+                    className="w-full h-48 md:h-72 relative overflow-hidden border-b border-white/10 bg-[#060812]"
+                  >
+                    {selectedProject.image ? (
+                      <img src={selectedProject.image} alt={selectedProject.title} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent-2/30 opacity-40" />
-                    </>
-                  )}
-                  <div className="relative z-10 text-center px-6 mt-8">
-                    <motion.h2 layoutId={`project-title-${selectedProject.id}`} className="text-3xl md:text-5xl font-display font-bold text-white tracking-tight drop-shadow-2xl mb-3">
+                    )}
+                    {/* Desktop overlay tint */}
+                    <div className="hidden md:block absolute inset-0 bg-[#0b0f1e]/50" />
+                  </motion.div>
+
+                  {/* Title & Desc (Below image on mobile, Overlaid on desktop) */}
+                  <div className="relative md:absolute md:inset-0 z-10 flex flex-col justify-center items-center text-center px-5 py-6 md:py-0 md:mt-8 bg-[#0b0f1e] md:bg-transparent">
+                    <motion.h2 layoutId={`project-title-${selectedProject.id}`} className="text-2xl sm:text-3xl md:text-5xl font-display font-bold text-white tracking-tight drop-shadow-2xl mb-2 md:mb-3 break-words w-full">
                       {selectedProject.title}
                     </motion.h2>
-                    <motion.p layoutId={`project-desc-${selectedProject.id}`} className="text-base md:text-lg text-white/80 max-w-xl mx-auto drop-shadow-lg">
+                    <motion.p layoutId={`project-desc-${selectedProject.id}`} className="text-sm md:text-lg text-white/80 max-w-xl mx-auto drop-shadow-lg break-words w-full">
                       {selectedProject.description}
                     </motion.p>
                   </div>
-                </motion.div>
+                </div>
 
                 {/* Modal Content */}
-                <div className="p-6 sm:p-10 lg:p-12">
-                  <div className="flex flex-col lg:flex-row gap-10">
+                <div className="p-5 sm:p-8 lg:p-12 w-full max-w-full overflow-hidden">
+                  <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
 
                     {/* Left Sidebar */}
                     <div className="w-full lg:w-1/3 flex flex-col gap-6 lg:sticky lg:top-0 h-fit">
 
                       {/* Action Buttons */}
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-3 w-full">
                         {selectedProject.demo && (
                           <a
                             href={selectedProject.demo}
@@ -272,21 +277,21 @@ const Projects = () => {
                     </div>
 
                     {/* Right Content */}
-                    <div className="w-full lg:w-2/3 space-y-8">
+                    <div className="w-full lg:w-2/3 space-y-6 md:space-y-8 overflow-hidden">
                       <div className="space-y-3">
                         <h3 className="text-xl font-heading font-semibold text-white flex items-center gap-2">
                           <Rocket className="w-5 h-5 text-primary" /> Overview
                         </h3>
-                        <p className="text-white/70 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
+                        <p className="text-white/70 leading-relaxed text-sm md:text-base whitespace-pre-wrap break-words">
                           {selectedProject.overview || selectedProject.description}
                         </p>
                       </div>
 
-                      <div className="p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary space-y-2">
+                      <div className="p-5 md:p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary space-y-2">
                         <h3 className="text-lg font-heading font-semibold text-white flex items-center gap-2">
                           <Target className="w-4 h-4 text-primary" /> Project Goal
                         </h3>
-                        <p className="text-white/70 text-sm leading-relaxed">
+                        <p className="text-white/70 text-sm leading-relaxed break-words">
                           {selectedProject.projectGoal || selectedProject.description}
                         </p>
                       </div>
