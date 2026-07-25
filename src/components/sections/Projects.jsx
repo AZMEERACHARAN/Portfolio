@@ -186,7 +186,7 @@ const Projects = () => {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="overflow-y-auto overflow-x-hidden w-full h-full flex flex-col">
+              <div className="overflow-y-auto overflow-x-hidden w-full flex-1 min-h-0 flex flex-col">
                 {/* Modal Hero Container */}
                 <div className="relative flex flex-col md:block w-full flex-shrink-0">
                   {/* Modal Hero Image */}
@@ -215,7 +215,7 @@ const Projects = () => {
                 </div>
 
                 {/* Modal Content */}
-                <div className="p-5 sm:p-8 lg:p-12 w-full max-w-full overflow-hidden">
+                <div className="p-5 sm:p-8 lg:p-12 w-full max-w-full">
                   <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
 
                     {/* Left Sidebar */}
@@ -277,7 +277,7 @@ const Projects = () => {
                     </div>
 
                     {/* Right Content */}
-                    <div className="w-full lg:w-2/3 space-y-6 md:space-y-8 overflow-hidden">
+                    <div className="w-full lg:w-2/3 space-y-6 md:space-y-8">
                       <div className="space-y-3">
                         <h3 className="text-xl font-heading font-semibold text-white flex items-center gap-2">
                           <Rocket className="w-5 h-5 text-primary" /> Overview
