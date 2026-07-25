@@ -37,8 +37,8 @@ const Projects = () => {
     <section id="projects" className="relative py-32 min-h-screen">
       {/* Background Styling */}
       <div className="absolute inset-0 pointer-events-none -z-10">
-        <div className="absolute top-1/3 right-10 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 left-10 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
+        <div className="hidden md:block absolute top-1/3 right-10 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[120px]" />
+        <div className="hidden md:block absolute bottom-0 left-10 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="container max-w-7xl mx-auto px-6 relative z-10">
@@ -112,7 +112,7 @@ const Projects = () => {
                   className="h-56 relative overflow-hidden flex items-center justify-center border-b border-white/5 bg-[#0a0a0f]"
                 >
                   {project.image ? (
-                    <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <img src={project.image} alt={project.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   ) : (
                     <>
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent-2/30 opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-700" />
@@ -194,7 +194,7 @@ const Projects = () => {
                   className="w-full h-56 md:h-72 relative flex items-center justify-center border-b border-white/10 bg-[#060812]"
                 >
                   {selectedProject.image ? (
-                    <img src={selectedProject.image} alt={selectedProject.title} className="w-full h-full object-cover" />
+                    <img src={selectedProject.image} alt={selectedProject.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     <>
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent-2/30 opacity-40" />

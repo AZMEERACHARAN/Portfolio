@@ -16,13 +16,13 @@ const TechCard = ({ tech }) => {
       onTouchStart={() => setIsHovered(true)}
       onTouchEnd={() => setIsHovered(false)}
     >
-      <motion.div
-        layout
-        className={`glass rounded-3xl border overflow-hidden flex flex-col transition-shadow duration-300 ${
-          isHovered
-            ? `absolute inset-0 m-auto h-fit w-[300px] sm:w-[340px] z-50 p-6 bg-[#0b0f1e]/95 border-white/30 ${tech.glowColor}`
-            : 'relative w-full h-full z-10 p-4 items-center justify-center bg-white/5 border-white/10 hover:border-white/20'
-        }`}
+        <motion.div
+          layout
+          className={`glass rounded-3xl border overflow-hidden flex flex-col transition-shadow duration-300 ${
+            isHovered
+              ? `fixed top-1/2 left-0 right-0 mx-auto -translate-y-1/2 md:absolute md:inset-0 md:m-auto md:translate-y-0 h-fit w-[calc(100vw-2rem)] max-w-[320px] md:max-w-none md:w-[340px] z-[100] md:z-50 p-6 bg-[#0b0f1e]/98 md:bg-[#0b0f1e]/95 backdrop-blur-2xl border-white/30 shadow-[0_20px_60px_rgba(0,0,0,0.8)] md:shadow-none ${tech.glowColor}`
+              : 'relative w-full h-full z-10 p-4 items-center justify-center bg-white/5 border-white/10 hover:border-white/20'
+          }`}
         style={{ backdropFilter: 'blur(20px)' }}
       >
         <motion.div 
@@ -40,6 +40,8 @@ const TechCard = ({ tech }) => {
                 <img 
                   src={tech.imageUrl} 
                   alt={tech.name} 
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-contain p-2"
                   onError={(e) => {
                     e.target.onerror = null;
@@ -153,12 +155,12 @@ const TechStack = () => {
         <motion.div 
           animate={{ scale: [1, 1.2, 1], x: [0, -30, 0], y: [0, 40, 0], opacity: [0.1, 0.15, 0.1] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"
+          className="hidden md:block absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"
         />
         <motion.div 
           animate={{ scale: [1, 1.1, 1], x: [0, 40, 0], y: [0, -30, 0], opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent-2/20 rounded-full blur-[100px]"
+          className="hidden md:block absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent-2/20 rounded-full blur-[100px]"
         />
       </div>
 

@@ -15,7 +15,7 @@ const PortfolioLayout = () => {
   });
 
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden w-full max-w-[100vw]">
       <AnimatedBackground />
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent-2 origin-left z-50"

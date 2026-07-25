@@ -18,7 +18,7 @@ const AdminLayout = () => {
   const sidebarW = collapsed ? 72 : 260;
 
   return (
-    <div className="min-h-screen flex bg-[#060a16] text-[--text]">
+    <div className="min-h-screen flex bg-[#060a16] text-[--text] overflow-x-hidden max-w-[100vw]">
       {/* Subtle radial glow */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-primary/5 rounded-full blur-[120px]" />

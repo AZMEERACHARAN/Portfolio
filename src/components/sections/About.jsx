@@ -7,8 +7,7 @@ const ICONS = {
   GraduationCap, Target, Brain, Lightbulb, Flame
 };
 
-const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+const AboutCard = ({ id, title, icon: Icon, description, delay, items, fullWidth, isExpanded, onToggle }) => {
 
   return (
     <motion.div
@@ -17,7 +16,7 @@ const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) 
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ scale: 1.02 }}
-      onClick={() => setIsExpanded(!isExpanded)}
+      onClick={onToggle}
       className={`relative group p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 backdrop-blur-md transition-all duration-500 shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(124,107,255,0.15)] overflow-hidden h-full flex flex-col justify-center cursor-pointer ${fullWidth ? 'md:col-span-2' : ''}`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
@@ -34,9 +33,9 @@ const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) 
           <h3 className="font-heading font-semibold text-lg text-white/90 group-hover:text-white transition-colors">{title}</h3>
         </div>
         
-        <div className={`grid transition-[grid-template-rows] duration-500 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr] lg:group-hover:grid-rows-[1fr]'}`}>
+        <div className={`grid transition-[grid-template-rows] duration-500 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
           <div className="overflow-hidden">
-            <div className={`pt-4 transition-opacity duration-500 delay-100 ${isExpanded ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}`}>
+            <div className={`pt-4 transition-opacity duration-500 delay-100 ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
               {description && (
                 <p className="text-sm font-sans text-text-muted leading-relaxed">
                   {description}
@@ -64,6 +63,7 @@ const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) 
 const About = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const [expandedId, setExpandedId] = React.useState(null);
   const aboutData = usePortfolioData('aboutData') || {};
   const cards = aboutData.cards && aboutData.cards.length > 0 ? aboutData.cards : [
     { 
@@ -93,12 +93,12 @@ const About = () => {
         <motion.div 
           animate={{ scale: [1, 1.1, 1], x: [0, 50, 0], y: [0, -30, 0], opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px]"
+          className="hidden md:block absolute top-1/4 right-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px]"
         />
         <motion.div 
           animate={{ scale: [1, 1.2, 1], x: [0, -50, 0], y: [0, 50, 0], opacity: [0.1, 0.15, 0.1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]"
+          className="hidden md:block absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]"
         />
       </div>
 
@@ -181,17 +181,23 @@ const About = () => {
           {/* RIGHT SIDE: Interactive Glass Dashboard (Bento Box) */}
           <div className="lg:col-span-7">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              {cards.map((card, index) => (
-                <AboutCard
-                  key={card.id || index}
-                  title={card.title}
-                  icon={ICONS[card.icon] || Lightbulb}
-                  description={card.description}
-                  items={card.items}
-                  fullWidth={card.fullWidth}
-                  delay={0.2 + (index * 0.1)}
-                />
-              ))}
+              {cards.map((card, index) => {
+                const cardId = card.id || card.title;
+                return (
+                  <AboutCard
+                    key={cardId}
+                    id={cardId}
+                    title={card.title}
+                    icon={ICONS[card.icon] || Lightbulb}
+                    description={card.description}
+                    items={card.items}
+                    fullWidth={card.fullWidth}
+                    delay={0.2 + (index * 0.1)}
+                    isExpanded={expandedId === cardId}
+                    onToggle={() => setExpandedId(expandedId === cardId ? null : cardId)}
+                  />
+                );
+              })}
             </div>
           </div>
           

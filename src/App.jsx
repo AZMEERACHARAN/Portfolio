@@ -3,24 +3,26 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { initializeData } from './services/dataService';
 import { subscribeToSettings } from './services/settingsService';
-import Login           from './pages/Login';
+import { lazy, Suspense } from 'react';
 import PortfolioLayout from './layouts/PortfolioLayout';
 import Home            from './pages/Home';
-import AdminLayout     from './layouts/AdminLayout';
 import PrivateRoute    from './components/admin/PrivateRoute';
-import AdminDashboard  from './pages/admin/AdminDashboard';
-import AdminSettings from './pages/admin/AdminSettings';
-import AdminMessages     from './pages/admin/AdminMessages';
-import AdminHero        from './pages/admin/AdminHero';
-import AdminAbout       from './pages/admin/AdminAbout';
-import AdminSkills      from './pages/admin/AdminSkills';
-import AdminProjects    from './pages/admin/AdminProjects';
-import AdminEducation   from './pages/admin/AdminEducation';
-import AdminExperience  from './pages/admin/AdminExperience';
-import AdminCertificates from './pages/admin/AdminCertificates';
-import AdminServices     from './pages/admin/AdminServices';
-import AdminTestimonials from './pages/admin/AdminTestimonials';
-import AdminAchievements from './pages/admin/AdminAchievements';
+
+const Login = lazy(() => import('./pages/Login'));
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'));
+const AdminHero = lazy(() => import('./pages/admin/AdminHero'));
+const AdminAbout = lazy(() => import('./pages/admin/AdminAbout'));
+const AdminSkills = lazy(() => import('./pages/admin/AdminSkills'));
+const AdminProjects = lazy(() => import('./pages/admin/AdminProjects'));
+const AdminEducation = lazy(() => import('./pages/admin/AdminEducation'));
+const AdminExperience = lazy(() => import('./pages/admin/AdminExperience'));
+const AdminCertificates = lazy(() => import('./pages/admin/AdminCertificates'));
+const AdminServices = lazy(() => import('./pages/admin/AdminServices'));
+const AdminTestimonials = lazy(() => import('./pages/admin/AdminTestimonials'));
+const AdminAchievements = lazy(() => import('./pages/admin/AdminAchievements'));
 
 function App() {
   const [settings, setSettings] = useState(null);
@@ -82,6 +84,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
       <Routes>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div></div>}>
         {/* Public */}
         <Route path="/" element={<PortfolioLayout />}>
           <Route index element={<Home />} />
@@ -107,6 +110,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
+      </Suspense>
       </BrowserRouter>
     </AuthProvider>
   );

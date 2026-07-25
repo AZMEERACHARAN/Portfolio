@@ -6,12 +6,14 @@ import { subscribeToTestimonials } from '../../services/testimonialsService';
 
 
 const TestimonialCard = ({ testimonial }) => (
-  <div className="w-[350px] sm:w-[400px] flex-shrink-0 glass p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 mx-4">
-    <div className="flex justify-between items-start mb-6">
+  <div className="w-[85vw] max-w-[350px] sm:max-w-[400px] flex-shrink-0 glass p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 mx-3 sm:mx-4 whitespace-normal flex flex-col h-auto">
+    <div className="flex justify-between items-start mb-6 gap-2">
       <div className="flex items-center gap-4">
         <img 
           src={testimonial.profileImage} 
           alt={testimonial.name} 
+          loading="lazy"
+          decoding="async"
           className="w-14 h-14 rounded-full object-cover border-2 border-primary/50"
         />
         <div>

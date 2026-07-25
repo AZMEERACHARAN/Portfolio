@@ -65,9 +65,11 @@ const Certificates = () => {
               >
                 <div className="relative h-48 overflow-hidden bg-black cursor-pointer" onClick={() => setSelectedCert(cert)}>
                   {cert.certificateImageUrl || cert.image ? (
-                    <img 
+                    <img
                       src={cert.certificateImageUrl || cert.image} 
                       alt={cert.title || cert.name} 
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
                     />
                   ) : (
@@ -141,6 +143,8 @@ const Certificates = () => {
                     <img 
                       src={selectedCert.certificateImageUrl || selectedCert.image} 
                       alt={selectedCert.title || selectedCert.name} 
+                      loading="lazy"
+                      decoding="async"
                       className="max-w-full max-h-full object-contain"
                     />
                   ) : (
