@@ -1,8 +1,9 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const PrivateRoute = () => {
-  const isAdmin = localStorage.getItem('admin-auth') === 'true';
-  return isAdmin ? <Outlet /> : <Navigate to="/" replace />;
+  const { currentUser } = useAuth();
+  return currentUser ? <Outlet /> : <Navigate to="/admin" replace />;
 };
 
 export default PrivateRoute;

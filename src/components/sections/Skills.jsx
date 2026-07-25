@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Code2 } from 'lucide-react';
-import { getSkillsData } from '../../services/skillsApi';
+import { Code2, Loader2 } from 'lucide-react';
+import { subscribeToSkills, migrateSkillsToFirestore } from '../../services/skillsService';
 
 const CAT_COLORS = {
   Frontend: 'from-cyan-500/20 to-cyan-500/5 border-cyan-500/20 hover:border-cyan-500/40 hover:shadow-[0_0_20px_rgba(34,211,238,0.2)]',
@@ -14,37 +14,43 @@ const CAT_COLORS = {
   Other: 'from-primary/20 to-primary/5 border-primary/20 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(124,107,255,0.2)]',
 };
 
-const DEFAULT_SKILLS = [
-  { id: '1', name: 'React.js', category: 'Frontend', level: 'Advanced' },
-  { id: '2', name: 'Node.js', category: 'Backend', level: 'Intermediate' },
-  { id: '3', name: 'JavaScript', category: 'Language', level: 'Expert' },
-  { id: '4', name: 'TypeScript', category: 'Language', level: 'Advanced' },
-  { id: '5', name: 'Tailwind CSS', category: 'Frontend', level: 'Expert' },
-  { id: '6', name: 'MongoDB', category: 'Database', level: 'Intermediate' },
-  { id: '7', name: 'Git', category: 'Tools', level: 'Advanced' },
-  { id: '8', name: 'Python', category: 'Language', level: 'Intermediate' },
-  { id: '9', name: 'Express', category: 'Backend', level: 'Intermediate' },
-  { id: '10', name: 'Framer Motion', category: 'Frontend', level: 'Advanced' },
-  { id: '11', name: 'Next.js', category: 'Frontend', level: 'Intermediate' },
-  { id: '12', name: 'SQL', category: 'Database', level: 'Intermediate' },
-];
-
 const CATEGORIES_ORDER = ['Frontend', 'Backend', 'Language', 'Database', 'DevOps', 'Tools', 'Design', 'Other'];
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadSkills = () => {
-      const data = getSkillsData();
-      setSkills(data && data.length > 0 ? data : DEFAULT_SKILLS);
+    let unsubscribe;
+
+    const init = async () => {
+      try {
+        await migrateSkillsToFirestore();
+      } catch (err) {
+        console.error("Migration failed:", err);
+      }
+
+      unsubscribe = subscribeToSkills((data) => {
+        // Map Firestore schema back to UI expectation
+        const mappedSkills = data.map(skill => ({
+          ...skill,
+          name: skill.title || skill.name,
+          level: skill.proficiency || skill.level
+        }));
+        setSkills(mappedSkills);
+        setIsLoading(false);
+      }, (err) => {
+        setError(err.message || "Failed to load skills");
+        setIsLoading(false);
+      });
     };
 
-    loadSkills(); // Initial load
+    init();
 
-    // Listen for changes from admin panel (e.g., cross-tab updates)
-    window.addEventListener('storage', loadSkills);
-    return () => window.removeEventListener('storage', loadSkills);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // Group by category in defined order
@@ -115,7 +121,16 @@ const Skills = () => {
         </div>
 
         {/* Skills Display */}
-        {skills.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16 text-white/30 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p>Loading skills...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 text-red-400">
+            <p>Error: {error}</p>
+          </div>
+        ) : skills.length === 0 ? (
           <div className="text-center py-16 text-white/30">No skills data yet. Add skills from the admin panel.</div>
         ) : (
           <div className="space-y-10">

@@ -1,21 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Plus, Trash2, Edit2, X, CheckCircle, Check, Code2 } from 'lucide-react';
-import { getSkillsData, saveSkillsData } from '../../services/skillsApi';
-
+import { subscribeToSkills, addSkill, updateSkill, deleteSkill, migrateSkillsToFirestore } from '../../services/skillsService';
 const CATEGORIES = ['Frontend', 'Backend', 'Database', 'DevOps', 'Tools', 'Language', 'Design', 'Other'];
 const LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
-
-const DEFAULT_SKILLS = [
-  { id: '1', name: 'React.js', category: 'Frontend', level: 'Advanced' },
-  { id: '2', name: 'Node.js', category: 'Backend', level: 'Intermediate' },
-  { id: '3', name: 'JavaScript', category: 'Language', level: 'Expert' },
-  { id: '4', name: 'TypeScript', category: 'Language', level: 'Advanced' },
-  { id: '5', name: 'Tailwind CSS', category: 'Frontend', level: 'Expert' },
-  { id: '6', name: 'MongoDB', category: 'Database', level: 'Intermediate' },
-  { id: '7', name: 'Git', category: 'Tools', level: 'Advanced' },
-  { id: '8', name: 'Python', category: 'Language', level: 'Intermediate' },
-];
 
 const LEVEL_COLORS = {
   Beginner: 'bg-gray-500/20 text-gray-400 border-gray-500/20',
@@ -37,15 +25,17 @@ const CAT_COLORS = {
 
 const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all";
 
-const EmptySkillForm = { name: '', category: 'Frontend', level: 'Intermediate' };
+const EmptySkillForm = { name: '', category: 'Frontend', level: 'Intermediate', about: '', projects: '', status: '', imageUrl: '' };
 
 const AdminSkills = () => {
-  const [skills, setSkills] = useState(() => getSkillsData() || DEFAULT_SKILLS);
+  const [skills, setSkills] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EmptySkillForm);
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [errorToast, setErrorToast] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -56,9 +46,34 @@ const AdminSkills = () => {
     return Object.keys(e).length === 0;
   };
 
+  React.useEffect(() => {
+    // Run migration one time if needed, then subscribe
+    const init = async () => {
+      await migrateSkillsToFirestore();
+      
+      const unsubscribe = subscribeToSkills((data) => {
+        // Map Firestore schema back to UI expectation (title -> name, proficiency -> level)
+        const mappedSkills = data.map(skill => ({
+          ...skill,
+          name: skill.title || skill.name,
+          level: skill.proficiency || skill.level
+        }));
+        setSkills(mappedSkills);
+        setIsLoading(false);
+      }, (err) => {
+        setErrorToast(err.message || "Failed to load skills");
+        setIsLoading(false);
+      });
+
+      return () => unsubscribe();
+    };
+    
+    init();
+  }, []);
+
   const handleSaveAll = () => {
+    // In Firestore mode, changes auto-save immediately. We just show a toast for UX.
     setIsSaving(true);
-    saveSkillsData(skills);
     setTimeout(() => {
       setIsSaving(false);
       setShowToast(true);
@@ -66,34 +81,55 @@ const AdminSkills = () => {
     }, 400);
   };
 
-  const handleAddOrUpdate = () => {
+  const handleAddOrUpdate = async () => {
     if (!validate()) return;
-    let updated;
-    if (editingId) {
-      updated = skills.map(s => s.id === editingId ? { ...s, ...form } : s);
+    
+    setIsSaving(true); // Re-using isSaving for button state if we want, or add another state
+    try {
+      if (editingId) {
+        await updateSkill(editingId, form);
+      } else {
+        await addSkill({ ...form, displayOrder: skills.length });
+      }
       setEditingId(null);
-    } else {
-      updated = [...skills, { id: Date.now().toString(), ...form }];
+      setForm(EmptySkillForm);
+      setShowForm(false);
+      setErrors({});
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Failed to save skill", error);
+      setErrorToast(error.message || "Failed to save skill.");
+      setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setIsSaving(false);
     }
-    setSkills(updated);
-    saveSkillsData(updated); // Auto-persist immediately
-    setForm(EmptySkillForm);
-    setShowForm(false);
-    setErrors({});
   };
 
   const handleEdit = (skill) => {
     setEditingId(skill.id);
-    setForm({ name: skill.name, category: skill.category, level: skill.level });
+    setForm({ 
+      name: skill.name, 
+      category: skill.category, 
+      level: skill.level,
+      about: skill.about || '',
+      projects: skill.projects || '',
+      status: skill.status || '',
+      imageUrl: skill.imageUrl || ''
+    });
     setShowForm(true);
     setErrors({});
   };
 
-  const handleDelete = (id) => {
-    const updated = skills.filter(s => s.id !== id);
-    setSkills(updated);
-    saveSkillsData(updated); // Auto-persist immediately
-    setDeleteId(null);
+  const handleDelete = async (id) => {
+    try {
+      await deleteSkill(id);
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Failed to delete skill", error);
+      setErrorToast(error.message || "Failed to delete skill.");
+      setTimeout(() => setErrorToast(null), 5000);
+    }
   };
 
   const handleCancel = () => {
@@ -164,12 +200,58 @@ const AdminSkills = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">Level</label>
+                <label className="block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">Experience Level</label>
                 <select value={form.level} onChange={e => setForm(p => ({ ...p, level: e.target.value }))} className={inputClass}>
                   {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
             </div>
+            
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">About</label>
+                <textarea
+                  value={form.about}
+                  onChange={e => setForm(p => ({ ...p, about: e.target.value }))}
+                  className={`${inputClass} min-h-[80px] resize-y`}
+                  placeholder='e.g. "A collaborative web application for interface design."'
+                />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">Projects</label>
+                  <input
+                    type="text"
+                    value={form.projects}
+                    onChange={e => setForm(p => ({ ...p, projects: e.target.value }))}
+                    className={inputClass}
+                    placeholder='e.g. "Portfolio Design, App Mockups"'
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">Status</label>
+                  <input
+                    type="text"
+                    value={form.status}
+                    onChange={e => setForm(p => ({ ...p, status: e.target.value }))}
+                    className={inputClass}
+                    placeholder='e.g. "Creating design systems"'
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <label className="block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">Skill Image URL</label>
+              <input
+                type="url"
+                value={form.imageUrl}
+                onChange={e => setForm(p => ({ ...p, imageUrl: e.target.value }))}
+                className={inputClass}
+                placeholder='e.g. "https://example.com/react-logo.png"'
+              />
+            </div>
+            
             <div className="flex justify-end gap-3 mt-4">
               <button onClick={handleCancel} className="px-4 py-2 rounded-xl text-sm text-[--text-muted] bg-white/5 hover:bg-white/10 transition-all flex items-center gap-2">
                 <X className="w-4 h-4" /> Cancel
@@ -183,7 +265,12 @@ const AdminSkills = () => {
       </AnimatePresence>
 
       {/* Skills Display — Grouped by Category */}
-      {skills.length === 0 ? (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
+          <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+          <p className="text-white/40 text-sm">Loading skills from database...</p>
+        </div>
+      ) : skills.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
           <Code2 className="w-12 h-12 text-white/20 mb-4" />
           <p className="text-white/40 text-sm">No skills added yet. Click "Add Skill" to get started.</p>
@@ -272,6 +359,24 @@ const AdminSkills = () => {
             <CheckCircle className="w-5 h-5" />
             <span className="text-sm font-medium">Skills saved successfully!</span>
             <button onClick={() => setShowToast(false)} className="ml-2 text-green-400/60 hover:text-green-400">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Toast */}
+      <AnimatePresence>
+        {errorToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(239,68,68,0.2)] text-red-400"
+          >
+            <X className="w-5 h-5" />
+            <span className="text-sm font-medium">{errorToast}</span>
+            <button onClick={() => setErrorToast(null)} className="ml-2 text-red-400/60 hover:text-red-400">
               <X className="w-4 h-4" />
             </button>
           </motion.div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Plus, Trash2, Edit2, X, MessageSquareQuote, Upload, User } from 'lucide-react';
-import { getTestimonialsData, saveTestimonialsData } from '../../services/testimonialsApi';
+import { getData, saveData } from '../../services/dataService';
 
 const EMPTY_TEST = {
   name: '',
@@ -15,7 +15,7 @@ const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 p
 const labelClass = "block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider";
 
 const AdminTestimonials = () => {
-  const [testimonials, setTestimonials] = useState(() => getTestimonialsData() || []);
+  const [testimonials, setTestimonials] = useState(() => getData('testimonialsData') || []);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_TEST);
   const [showForm, setShowForm] = useState(false);
@@ -68,7 +68,7 @@ const AdminTestimonials = () => {
       updated = [...testimonials, { id: Date.now().toString(), ...form }];
     }
     setTestimonials(updated);
-    saveTestimonialsData(updated);
+    saveData('testimonialsData', updated);
     setShowForm(false);
     setEditingId(null);
   };
@@ -76,7 +76,7 @@ const AdminTestimonials = () => {
   const handleDelete = (id) => {
     const updated = testimonials.filter(item => item.id !== id);
     setTestimonials(updated);
-    saveTestimonialsData(updated);
+    saveData('testimonialsData', updated);
     setDeleteId(null);
   };
 

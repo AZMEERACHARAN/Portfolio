@@ -1,33 +1,58 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, Plus, Trash2, Edit2, X, CheckCircle, Award, Upload, Image as ImageIcon } from 'lucide-react';
-import { getCertificatesData, saveCertificatesData } from '../../services/certificatesApi';
+import { Save, Plus, Trash2, Edit2, X, CheckCircle, Award, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
+import { subscribeToCertificates, addCertificate, updateCertificate, deleteCertificate, migrateCertificatesToFirestore, reorderCertificates } from '../../services/certificateService';
 
 const EMPTY_CERT = {
-  name: '',
-  organization: '',
-  date: '',
-  link: '',
-  image: ''
+  title: '',
+  issuer: '',
+  issueDate: '',
+  expiryDate: '',
+  credentialId: '',
+  credentialUrl: '',
+  certificateImageUrl: '',
+  description: '',
+  skills: '',
+  isVisible: true
 };
 
 const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all";
 const labelClass = "block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider";
 
 const AdminCertificates = () => {
-  const [certificates, setCertificates] = useState(() => getCertificatesData() || []);
+  const [certificates, setCertificates] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_CERT);
   const [showForm, setShowForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [errorToast, setErrorToast] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [errors, setErrors] = useState({});
 
+  React.useEffect(() => {
+    const init = async () => {
+      await migrateCertificatesToFirestore();
+      
+      const unsubscribe = subscribeToCertificates((data) => {
+        setCertificates(data);
+        setIsLoading(false);
+      }, (err) => {
+        setErrorToast(err.message || "Failed to load certificates");
+        setIsLoading(false);
+      });
+
+      return () => unsubscribe();
+    };
+    
+    init();
+  }, []);
+
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Name is required';
-    if (!form.organization.trim()) e.organization = 'Organization is required';
+    if (!form.title?.trim() && !form.name?.trim()) e.title = 'Title is required';
+    if (!form.issuer?.trim() && !form.organization?.trim()) e.issuer = 'Issuer is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -36,15 +61,6 @@ const AdminCertificates = () => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setForm(prev => ({ ...prev, image: reader.result }));
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleOpenNew = () => {
@@ -61,31 +77,63 @@ const AdminCertificates = () => {
     setShowForm(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    let updated;
-    if (editingId) {
-      updated = certificates.map(item => item.id === editingId ? { ...item, ...form } : item);
-    } else {
-      updated = [...certificates, { id: Date.now().toString(), ...form }];
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        await updateCertificate(editingId, form);
+      } else {
+        await addCertificate({ ...form, displayOrder: certificates.length });
+      }
+      setShowForm(false);
+      setEditingId(null);
+      setForm(EMPTY_CERT);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Failed to save certificate", error);
+      setErrorToast(error.message || "Failed to save certificate.");
+      setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setIsSaving(false);
     }
-    setCertificates(updated);
-    saveCertificatesData(updated);
-    setShowForm(false);
-    setEditingId(null);
-    setForm(EMPTY_CERT);
   };
 
-  const handleDelete = (id) => {
-    const updated = certificates.filter(item => item.id !== id);
-    setCertificates(updated);
-    saveCertificatesData(updated);
-    setDeleteId(null);
+  const handleDelete = async (id) => {
+    try {
+      await deleteCertificate(id);
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Failed to delete certificate", error);
+      setErrorToast(error.message || "Failed to delete certificate.");
+      setTimeout(() => setErrorToast(null), 5000);
+    }
+  };
+
+  const handleReorder = async (index, direction) => {
+    const newList = [...certificates];
+    if (direction === 'up' && index > 0) {
+      [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+    } else if (direction === 'down' && index < newList.length - 1) {
+      [newList[index + 1], newList[index]] = [newList[index], newList[index + 1]];
+    } else {
+      return;
+    }
+    
+    // Optimistic update
+    setCertificates(newList);
+    try {
+      await reorderCertificates(newList);
+    } catch (error) {
+      console.error("Failed to reorder", error);
+      setErrorToast("Failed to reorder.");
+    }
   };
 
   const handleSaveAll = () => {
     setIsSaving(true);
-    saveCertificatesData(certificates);
+    saveData('certificatesData', certificates);
     setTimeout(() => {
       setIsSaving(false);
       setShowToast(true);
@@ -124,7 +172,12 @@ const AdminCertificates = () => {
       </div>
 
       {/* Grid or Empty State */}
-      {!showForm && (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
+          <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+          <p className="text-white/40 text-sm">Loading certificates from database...</p>
+        </div>
+      ) : !showForm && (
         certificates.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
             <Award className="w-12 h-12 text-white/20 mb-4" />
@@ -141,8 +194,8 @@ const AdminCertificates = () => {
                 className="group bg-[#0a0d1c]/70 backdrop-blur-xl border border-white/6 rounded-2xl overflow-hidden hover:border-white/15 transition-all"
               >
                 <div className="h-32 bg-[#0f1123] border-b border-white/5 flex items-center justify-center overflow-hidden relative">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  {item.certificateImageUrl || item.image ? (
+                    <img src={item.certificateImageUrl || item.image} alt={item.title || item.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="flex flex-col items-center gap-2 text-white/20">
                       <ImageIcon className="w-8 h-8" />
@@ -152,8 +205,18 @@ const AdminCertificates = () => {
                 </div>
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-white font-semibold truncate">{item.name}</h3>
+                    <h3 className="text-white font-semibold truncate" title={item.title || item.name}>{item.title || item.name}</h3>
                     <div className="flex gap-1">
+                      {index > 0 && (
+                        <button onClick={() => handleReorder(index, 'up')} className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all">
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {index < certificates.length - 1 && (
+                        <button onClick={() => handleReorder(index, 'down')} className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all">
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <button onClick={() => handleOpenEdit(item)} className="p-1.5 rounded-lg text-white/50 hover:text-primary hover:bg-primary/10 transition-all">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -162,8 +225,8 @@ const AdminCertificates = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="text-primary text-sm font-medium mb-1">{item.organization}</p>
-                  <span className="inline-block px-2 py-0.5 rounded bg-white/5 text-white/50 text-xs">{item.date}</span>
+                  <p className="text-primary text-sm font-medium mb-1">{item.issuer || item.organization}</p>
+                  <span className="inline-block px-2 py-0.5 rounded bg-white/5 text-white/50 text-xs">{item.issueDate || item.date}</span>
                 </div>
               </motion.div>
             ))}
@@ -190,53 +253,48 @@ const AdminCertificates = () => {
             <div className="grid lg:grid-cols-2 gap-6">
               <div className="space-y-5">
                 <div>
-                  <label className={labelClass}>Certificate Name *</label>
-                  <input type="text" name="name" value={form.name} onChange={handleChange} className={`${inputClass} ${errors.name ? 'border-red-500/50' : ''}`} placeholder="e.g. AWS Certified Solutions Architect" />
-                  {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+                  <label className={labelClass}>Certificate Title *</label>
+                  <input type="text" name="title" value={form.title || form.name || ''} onChange={handleChange} className={`${inputClass} ${errors.title ? 'border-red-500/50' : ''}`} placeholder="e.g. AWS Certified Solutions Architect" />
+                  {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>Organization *</label>
-                  <input type="text" name="organization" value={form.organization} onChange={handleChange} className={`${inputClass} ${errors.organization ? 'border-red-500/50' : ''}`} placeholder="e.g. Amazon Web Services" />
-                  {errors.organization && <p className="text-red-400 text-xs mt-1">{errors.organization}</p>}
+                  <label className={labelClass}>Issuer / Organization *</label>
+                  <input type="text" name="issuer" value={form.issuer || form.organization || ''} onChange={handleChange} className={`${inputClass} ${errors.issuer ? 'border-red-500/50' : ''}`} placeholder="e.g. Amazon Web Services" />
+                  {errors.issuer && <p className="text-red-400 text-xs mt-1">{errors.issuer}</p>}
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Date</label>
-                    <input type="text" name="date" value={form.date} onChange={handleChange} className={inputClass} placeholder="e.g. Aug 2023" />
+                    <label className={labelClass}>Issue Date</label>
+                    <input type="text" name="issueDate" value={form.issueDate || form.date || ''} onChange={handleChange} className={inputClass} placeholder="e.g. Aug 2023" />
                   </div>
                   <div>
-                    <label className={labelClass}>Certificate Link</label>
-                    <input type="url" name="link" value={form.link} onChange={handleChange} className={inputClass} placeholder="https://..." />
+                    <label className={labelClass}>Expiry Date</label>
+                    <input type="text" name="expiryDate" value={form.expiryDate || ''} onChange={handleChange} className={inputClass} placeholder="e.g. Aug 2026" />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Credential ID</label>
+                    <input type="text" name="credentialId" value={form.credentialId || ''} onChange={handleChange} className={inputClass} placeholder="e.g. AWS-12345" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Credential URL</label>
+                    <input type="url" name="credentialUrl" value={form.credentialUrl || form.link || ''} onChange={handleChange} className={inputClass} placeholder="https://..." />
                   </div>
                 </div>
               </div>
               <div className="space-y-5">
                 <div>
-                  <label className={labelClass}>Certificate Image</label>
-                  <div className="mt-1 flex gap-4 items-start">
-                    <div className="w-32 h-24 rounded-xl overflow-hidden bg-[#0f1123] border border-white/10 shrink-0 flex items-center justify-center">
-                      {form.image ? (
-                        <img src={form.image} alt="preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="flex flex-col items-center gap-1 text-white/20">
-                          <ImageIcon className="w-6 h-6" />
-                          <span className="text-[10px]">No image</span>
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <input type="file" id="certImage" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                      <label htmlFor="certImage" className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-white cursor-pointer transition-colors">
-                        <Upload className="w-4 h-4" /> Choose Image
-                      </label>
-                      {form.image && (
-                        <button onClick={() => setForm(p => ({ ...p, image: '' }))} className="mt-2 flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors">
-                          <X className="w-3 h-3" /> Remove
-                        </button>
-                      )}
-                      <p className="text-[--text-muted] text-xs mt-2">Max 2MB.</p>
-                    </div>
-                  </div>
+                  <label className={labelClass}>Certificate Image URL</label>
+                  <input type="url" name="certificateImageUrl" value={form.certificateImageUrl || form.image || ''} onChange={handleChange} className={inputClass} placeholder="https://..." />
+                </div>
+                <div>
+                  <label className={labelClass}>Skills (comma separated)</label>
+                  <input type="text" name="skills" value={form.skills || ''} onChange={handleChange} className={inputClass} placeholder="e.g. AWS, Cloud Architecture" />
+                </div>
+                <div>
+                  <label className={labelClass}>Description</label>
+                  <textarea name="description" value={form.description || ''} onChange={handleChange} rows={4} className={`${inputClass} resize-none`} placeholder="Details about this certification." />
                 </div>
               </div>
             </div>
@@ -281,6 +339,24 @@ const AdminCertificates = () => {
             <CheckCircle className="w-5 h-5" />
             <span className="text-sm font-medium">Certificates saved successfully!</span>
             <button onClick={() => setShowToast(false)} className="ml-2 text-green-400/60 hover:text-green-400">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Toast */}
+      <AnimatePresence>
+        {errorToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(239,68,68,0.2)] text-red-400"
+          >
+            <X className="w-5 h-5" />
+            <span className="text-sm font-medium">{errorToast}</span>
+            <button onClick={() => setErrorToast(null)} className="ml-2 text-red-400/60 hover:text-red-400">
               <X className="w-4 h-4" />
             </button>
           </motion.div>

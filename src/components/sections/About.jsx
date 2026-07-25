@@ -1,6 +1,11 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Download, GraduationCap, Target, Brain, Lightbulb, Flame } from 'lucide-react';
+import { usePortfolioData } from '../../hooks/usePortfolioData';
+
+const ICONS = {
+  GraduationCap, Target, Brain, Lightbulb, Flame
+};
 
 const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) => {
   return (
@@ -56,35 +61,8 @@ const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) 
 const About = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
-
-  const cards = [
-    {
-      title: "Education",
-      icon: GraduationCap,
-      description: "Pursuing B.Tech in Computer Science Engineering at RGUKT Basar, building a strong foundation in core CS principles, algorithms, and software engineering.",
-      fullWidth: true
-    },
-    {
-      title: "Passion",
-      icon: Flame,
-      description: "Deeply passionate about crafting seamless, intuitive, and modern web applications with a focus on UI/UX."
-    },
-    {
-      title: "Mission",
-      icon: Target,
-      description: "To build impactful products that solve real-world problems while delivering an exceptional user experience."
-    },
-    {
-      title: "Currently Learning",
-      icon: Brain,
-      items: ["Advanced React Patterns", "AI Integrations", "Full-Stack Architecture", "Web 3D Graphics"]
-    },
-    {
-      title: "Vision",
-      icon: Lightbulb,
-      description: "To become a world-class Software Engineer, continuously evolving, innovating, and inspiring the tech community."
-    }
-  ];
+  const aboutData = usePortfolioData('aboutData') || {};
+  const cards = aboutData.cards || [];
 
   return (
     <section id="about" className="relative py-32 overflow-hidden" ref={containerRef}>
@@ -138,14 +116,18 @@ const About = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ delay: 0.4 }}
-              className="space-y-6 text-base sm:text-lg font-sans font-light text-text-muted leading-relaxed"
+              className="space-y-6 text-base sm:text-lg font-sans font-light text-text-muted leading-relaxed whitespace-pre-wrap"
             >
-              <p>
-                I am a driven software developer, fueled by an immense passion for <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-2 font-medium">Frontend Development</span>, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-2 font-medium">React</span>, and <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-2 font-medium">Modern UI/UX</span>.
-              </p>
-              <p>
-                For me, coding is more than just writing logic—it is the art of crafting seamless, intuitive, and <span className="text-white font-medium">premium web applications</span> that leave a lasting impact.
-              </p>
+              {aboutData.biography || (
+                <>
+                  <p>
+                    I am a driven software developer, fueled by an immense passion for <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-2 font-medium">Frontend Development</span>, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-2 font-medium">React</span>, and <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-2 font-medium">Modern UI/UX</span>.
+                  </p>
+                  <p>
+                    For me, coding is more than just writing logic—it is the art of crafting seamless, intuitive, and <span className="text-white font-medium">premium web applications</span> that leave a lasting impact.
+                  </p>
+                </>
+              )}
             </motion.div>
 
             <motion.div 
@@ -155,7 +137,7 @@ const About = () => {
               className="relative p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary shadow-[inset_0_0_20px_rgba(124,107,255,0.05)]"
             >
               <p className="font-heading font-medium text-white/90 italic text-lg">
-                "The only way to do great work is to love what you do. Constantly learning, constantly evolving."
+                "{aboutData.careerObjective || 'The only way to do great work is to love what you do. Constantly learning, constantly evolving.'}"
               </p>
             </motion.div>
 
@@ -179,9 +161,9 @@ const About = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               {cards.map((card, index) => (
                 <AboutCard
-                  key={index}
+                  key={card.id || index}
                   title={card.title}
-                  icon={card.icon}
+                  icon={ICONS[card.icon] || Lightbulb}
                   description={card.description}
                   items={card.items}
                   fullWidth={card.fullWidth}

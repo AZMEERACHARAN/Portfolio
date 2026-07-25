@@ -1,21 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { ArrowRight, Download, Code, Terminal, Sparkles, Database, Layers } from 'lucide-react';
-import { getHeroData } from '../../services/heroApi';
-
-const DEFAULT_MOCK_DATA = {
-  name: 'AZMEERA CHARAN',
-  role: 'Frontend Developer',
-  description: 'I am a passionate B.Tech Computer Science student who enjoys building modern, responsive, and user-friendly web applications. I love learning new technologies, solving real-world problems, and creating beautiful digital experiences through clean code and thoughtful design.',
-  resumeLink: '#',
-  image: '/profile.jpg',
-  social: {
-    github: '#',
-    linkedin: '#',
-    twitter: '#',
-    instagram: '#'
-  }
-};
+import { ArrowRight, Download, Code, Terminal, Sparkles, Database, Layers, Loader2 } from 'lucide-react';
+import { getHeroData, subscribeToHeroData } from '../../services/heroService';
+import { subscribeToSettings } from '../../services/settingsService';
 
 // Custom Typewriter component
 const Typewriter = ({ words }) => {
@@ -145,29 +132,52 @@ const FloatingBadge = ({ icon: Icon, text, delay, style, yAnim }) => (
 
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [heroData, setHeroData] = useState(() => getHeroData() || DEFAULT_MOCK_DATA);
+  const [heroData, setHeroData] = useState(null);
+  const [settings, setSettings] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const handleMouseMove = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    
+    let isHeroLoaded = false;
+    let isSettingsLoaded = false;
+
+    const checkLoading = () => {
+      if (isHeroLoaded && isSettingsLoaded) setIsLoading(false);
+    };
+
+    const unsubscribeHero = subscribeToHeroData((data) => {
+      setHeroData(data);
+      isHeroLoaded = true;
+      checkLoading();
+    });
+
+    const unsubscribeSettings = subscribeToSettings((data) => {
+      if (data) setSettings(data);
+      isSettingsLoaded = true;
+      checkLoading();
+    });
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      unsubscribeHero();
+      unsubscribeSettings();
+    };
   }, []);
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const data = getHeroData();
-      if (data) setHeroData(data);
-    };
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('hero-data-updated', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('hero-data-updated', handleStorageChange);
-    };
-  }, []);
+  if (isLoading) {
+    return (
+      <section id="home" className="relative min-h-screen pt-32 pb-20 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </section>
+    );
+  }
+
+  if (!heroData) return null;
 
   const roles = [
-    heroData.role,
+    heroData.title || "Frontend Developer",
     "B.Tech CSE Student",
     "React Developer",
     "Problem Solver",
@@ -223,7 +233,7 @@ const Hero = () => {
             >
               <Sparkles className="w-4 h-4 text-accent-2" />
               <span className="text-[10px] sm:text-xs font-mono text-white/80 uppercase tracking-[0.2em] font-semibold">
-                BUILDING MODERN WEB EXPERIENCES
+                {heroData.subtitle || 'BUILDING MODERN WEB EXPERIENCES'}
               </span>
             </motion.div>
 
@@ -236,10 +246,10 @@ const Hero = () => {
                 className="text-6xl sm:text-7xl lg:text-[5rem] xl:text-[6rem] font-display font-bold leading-[0.9] tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-primary via-accent-2 to-primary animate-gradient bg-[length:200%_auto] relative uppercase"
               >
                 <span className="absolute inset-0 bg-primary/20 blur-3xl -z-10 mix-blend-screen" />
-                {heroData.name.split(' ').map((word, i) => (
+                {(heroData.name || "AZMEERA CHARAN").split(' ').map((word, i) => (
                   <React.Fragment key={i}>
                     {word}
-                    {i !== heroData.name.split(' ').length - 1 && <br />}
+                    {i !== (heroData.name || "AZMEERA CHARAN").split(' ').length - 1 && <br />}
                   </React.Fragment>
                 ))}
               </motion.h1>
@@ -278,15 +288,15 @@ const Hero = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <span className="relative z-10 flex items-center gap-2">
-                  Explore My Work <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  {heroData.primaryButton || 'Explore My Work'} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </span>
               </MagneticButton>
 
               <MagneticButton 
-                href={heroData.resumeLink}
+                href={settings?.resumeUrl || heroData.resumeUrl || '#'}
                 className="group px-6 py-3.5 font-button font-semibold text-white/90 bg-transparent border border-white/10 rounded-2xl hover:bg-white/10 transition-colors flex items-center gap-2"
               >
-                Download Resume <Download className="w-4 h-4 group-hover:-translate-y-1 transition-transform" />
+                {heroData.secondaryButton || 'Download Resume'} <Download className="w-4 h-4 group-hover:-translate-y-1 transition-transform" />
               </MagneticButton>
               
               <MagneticButton 
@@ -305,26 +315,26 @@ const Hero = () => {
               className="flex flex-col xl:flex-row items-start xl:items-center gap-6 pt-6 border-t border-white/5"
             >
               <div className="flex items-center gap-5 text-sm font-button text-text-muted">
-                {heroData.social.github && (
-                  <a href={heroData.social.github} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
+                {(settings?.github || heroData.socialLinks?.github) && (
+                  <a href={settings?.github || heroData.socialLinks?.github} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
                     GitHub
                     <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all group-hover:w-full" />
                   </a>
                 )}
-                {heroData.social.linkedin && (
-                  <a href={heroData.social.linkedin} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
+                {(settings?.linkedin || heroData.socialLinks?.linkedin) && (
+                  <a href={settings?.linkedin || heroData.socialLinks?.linkedin} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
                     LinkedIn
                     <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all group-hover:w-full" />
                   </a>
                 )}
-                {heroData.social.twitter && (
-                  <a href={heroData.social.twitter} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
+                {(settings?.twitter || heroData.socialLinks?.twitter) && (
+                  <a href={settings?.twitter || heroData.socialLinks?.twitter} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
                     Twitter
                     <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all group-hover:w-full" />
                   </a>
                 )}
-                {heroData.social.instagram && (
-                  <a href={heroData.social.instagram} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
+                {(settings?.instagram || heroData.socialLinks?.instagram) && (
+                  <a href={settings?.instagram || heroData.socialLinks?.instagram} target="_blank" rel="noreferrer" className="hover:text-white transition-colors relative group">
                     Instagram
                     <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all group-hover:w-full" />
                   </a>
@@ -367,12 +377,12 @@ const Hero = () => {
                   <div className="absolute -inset-full w-[250%] h-[250%] rotate-[35deg] bg-gradient-to-br from-transparent via-white/10 to-transparent translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 z-20 pointer-events-none" />
                   
                   <img 
-                    src={heroData.image} 
-                    alt={heroData.name} 
+                    src={settings?.profileImageUrl || heroData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(settings?.ownerName || heroData.name || 'Admin')}&size=400&background=7c6bff&color=fff`} 
+                    alt={settings?.ownerName || heroData.name || "Profile"} 
                     className="w-full h-full object-cover object-center transition-all duration-700 scale-105 group-hover:scale-100"
                     onError={(e) => {
-                      // Fallback if image doesn't exist yet
-                      e.target.style.opacity = '0';
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(settings?.ownerName || heroData.name || 'Admin')}&size=400&background=7c6bff&color=fff`;
                     }}
                   />
                   {/* Fallback pattern if image is missing */}

@@ -1,38 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, RotateCcw, Upload, X, CheckCircle, Globe, Briefcase, MessageCircle, Camera } from 'lucide-react';
-import { getHeroData, saveHeroData } from '../../services/heroApi';
-
-// Mock initial data
-const INITIAL_DATA = {
-  name: 'Azmeera Charan',
-  role: 'Frontend Developer',
-  description: 'Building exceptional digital experiences with modern web technologies. Passionate about UI/UX and clean code.',
-  resumeLink: 'https://example.com/resume.pdf',
-  image: 'https://via.placeholder.com/400x400/1e293b/ffffff?text=AC', // Mock image
-  social: {
-    github: 'https://github.com/azmeeracharan',
-    linkedin: 'https://linkedin.com/in/azmeeracharan',
-    twitter: '',
-    instagram: ''
-  }
-};
+import { Save, RotateCcw, X, CheckCircle, Globe, Briefcase, MessageCircle, Camera, Loader2, Upload } from 'lucide-react';
+import { getHeroData, updateHeroData, DEFAULT_HERO_DATA } from '../../services/heroService';
 
 const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all";
 const labelClass = "block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider";
 
 const AdminHero = () => {
-  const [formData, setFormData] = useState(() => getHeroData() || INITIAL_DATA);
+  const [formData, setFormData] = useState(DEFAULT_HERO_DATA);
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getHeroData();
+        setFormData({ ...DEFAULT_HERO_DATA, ...data });
+      } catch (error) {
+        console.error("Failed to fetch hero data", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.role.trim()) newErrors.role = 'Role is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.name?.trim()) newErrors.name = 'Name is required';
+    if (!formData.title?.trim()) newErrors.title = 'Title is required';
+    if (!formData.description?.trim()) newErrors.description = 'Description is required';
     else if (formData.description.length > 200) newErrors.description = 'Description must be less than 200 characters';
+    
+    if (formData.profileImage?.trim()) {
+      try {
+        new URL(formData.profileImage);
+      } catch (_) {
+        newErrors.profileImage = 'Please enter a valid URL for Profile Image';
+      }
+    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -40,48 +48,46 @@ const AdminHero = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
-  };
-
-  const handleSocialChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      social: { ...prev.social, [name]: value }
-    }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
+    if (name.startsWith('socialLinks.')) {
+      const key = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        socialLinks: { ...prev.socialLinks, [key]: value }
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     
     setIsSaving(true);
-    // Persist to localStorage
-    saveHeroData(formData);
-    
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await updateHeroData(formData);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
-    }, 400); // Shorter mock delay since save is synchronous
+    } catch (error) {
+      console.error("Failed to save hero data", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleReset = () => {
-    setFormData(INITIAL_DATA);
+    setFormData(DEFAULT_HERO_DATA);
     setErrors({});
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -129,32 +135,24 @@ const AdminHero = () => {
               Basic Information
             </h2>
             <div className="space-y-5">
-              <div className="grid sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className={labelClass}>Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className={`${inputClass} ${errors.name ? 'border-red-500/50 focus:border-red-500' : ''}`}
-                    placeholder="e.g. Jane Doe"
-                  />
-                  {errors.name && <p className="text-red-400 text-xs mt-1.5">{errors.name}</p>}
+                  <label className={labelClass}>Name</label>
+                  <input type="text" name="name" value={formData.name} onChange={handleChange} className={`${inputClass} ${errors.name ? 'border-red-500/50 focus:border-red-500' : ''}`} placeholder="Your Name" />
+                  {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>Job Role / Title</label>
-                  <input
-                    type="text"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className={`${inputClass} ${errors.role ? 'border-red-500/50 focus:border-red-500' : ''}`}
-                    placeholder="e.g. Full Stack Developer"
-                  />
-                  {errors.role && <p className="text-red-400 text-xs mt-1.5">{errors.role}</p>}
+                  <label className={labelClass}>Title</label>
+                  <input type="text" name="title" value={formData.title} onChange={handleChange} className={`${inputClass} ${errors.title ? 'border-red-500/50 focus:border-red-500' : ''}`} placeholder="e.g. Frontend Developer" />
+                  {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
                 </div>
               </div>
+
+              <div>
+                <label className={labelClass}>Subtitle</label>
+                <input type="text" name="subtitle" value={formData.subtitle} onChange={handleChange} className={inputClass} placeholder="e.g. BUILDING MODERN WEB EXPERIENCES" />
+              </div>
+
               <div>
                 <label className={labelClass}>Short Description (Max 200 chars)</label>
                 <textarea
@@ -176,85 +174,68 @@ const AdminHero = () => {
                   </p>
                 </div>
               </div>
-              <div>
-                <label className={labelClass}>Resume/CV Link</label>
-                <input
-                  type="url"
-                  name="resumeLink"
-                  value={formData.resumeLink}
-                  onChange={handleChange}
-                  className={inputClass}
-                  placeholder="https://drive.google.com/..."
-                />
+            </div>
+          </div>
+
+          {/* Media & Buttons Card */}
+          <div className="bg-[#0a0d1c]/70 backdrop-blur-xl border border-white/6 rounded-2xl p-6">
+            <h2 className="text-white font-semibold mb-6 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center text-xs">02</span>
+              Media & Calls to Action
+            </h2>
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className={labelClass}>Profile Image URL</label>
+                  <input 
+                    type="url" 
+                    name="profileImage" 
+                    value={formData.profileImage || ''} 
+                    onChange={handleChange} 
+                    className={`${inputClass} ${errors.profileImage ? 'border-red-500/50 focus:border-red-500' : ''}`} 
+                    placeholder="https://example.com/image.jpg" 
+                  />
+                  {errors.profileImage && <p className="text-red-400 text-xs mt-1">{errors.profileImage}</p>}
+                </div>
+                <div>
+                  <label className={labelClass}>Resume URL</label>
+                  <input type="url" name="resumeUrl" value={formData.resumeUrl} onChange={handleChange} className={inputClass} placeholder="https://..." />
+                </div>
+                <div>
+                  <label className={labelClass}>Primary Button Text</label>
+                  <input type="text" name="primaryButton" value={formData.primaryButton} onChange={handleChange} className={inputClass} placeholder="Explore My Work" />
+                </div>
+                <div>
+                  <label className={labelClass}>Secondary Button Text</label>
+                  <input type="text" name="secondaryButton" value={formData.secondaryButton} onChange={handleChange} className={inputClass} placeholder="Download Resume" />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Media & Social Card */}
+          {/* Social Links Card */}
           <div className="bg-[#0a0d1c]/70 backdrop-blur-xl border border-white/6 rounded-2xl p-6">
             <h2 className="text-white font-semibold mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-accent-2/20 text-accent-2 flex items-center justify-center text-xs">02</span>
-              Media & Social
+              <span className="w-8 h-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center text-xs">03</span>
+              Social Links
             </h2>
-            <div className="space-y-6">
-              {/* Profile Image */}
-              <div>
-                <label className={labelClass}>Profile Image</label>
-                <div className="mt-2 flex items-center gap-6">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 shrink-0 bg-[#0f1123]">
-                    {formData.image ? (
-                      <img src={formData.image} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[--text-muted]">No Img</div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="relative">
-                      <input 
-                        type="file" 
-                        id="imageUpload" 
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden" 
-                      />
-                      <label 
-                        htmlFor="imageUpload"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-white cursor-pointer transition-colors"
-                      >
-                        <Upload className="w-4 h-4" />
-                        Choose new image
-                      </label>
-                    </div>
-                    <p className="text-[--text-muted] text-xs mt-2">Recommended: Square image, at least 400x400px. Max size 2MB.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Social Links */}
-              <div className="pt-4 border-t border-white/10 grid sm:grid-cols-2 gap-4">
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="flex items-center gap-2 text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">
-                    <Globe className="w-3.5 h-3.5" /> GitHub
-                  </label>
-                  <input type="url" name="github" value={formData.social.github} onChange={handleSocialChange} className={inputClass} placeholder="github.com/username" />
+                  <label className={labelClass}>GitHub</label>
+                  <input type="url" name="socialLinks.github" value={formData.socialLinks?.github || ''} onChange={handleChange} className={inputClass} placeholder="https://github.com/..." />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">
-                    <Briefcase className="w-3.5 h-3.5" /> LinkedIn
-                  </label>
-                  <input type="url" name="linkedin" value={formData.social.linkedin} onChange={handleSocialChange} className={inputClass} placeholder="linkedin.com/in/username" />
+                  <label className={labelClass}>LinkedIn</label>
+                  <input type="url" name="socialLinks.linkedin" value={formData.socialLinks?.linkedin || ''} onChange={handleChange} className={inputClass} placeholder="https://linkedin.com/..." />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">
-                    <MessageCircle className="w-3.5 h-3.5" /> Twitter
-                  </label>
-                  <input type="url" name="twitter" value={formData.social.twitter} onChange={handleSocialChange} className={inputClass} placeholder="twitter.com/username" />
+                  <label className={labelClass}>Twitter</label>
+                  <input type="url" name="socialLinks.twitter" value={formData.socialLinks?.twitter || ''} onChange={handleChange} className={inputClass} placeholder="https://twitter.com/..." />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">
-                    <Camera className="w-3.5 h-3.5" /> Instagram
-                  </label>
-                  <input type="url" name="instagram" value={formData.social.instagram} onChange={handleSocialChange} className={inputClass} placeholder="instagram.com/username" />
+                  <label className={labelClass}>Instagram</label>
+                  <input type="url" name="socialLinks.instagram" value={formData.socialLinks?.instagram || ''} onChange={handleChange} className={inputClass} placeholder="https://instagram.com/..." />
                 </div>
               </div>
             </div>
@@ -284,10 +265,16 @@ const AdminHero = () => {
               
               <div className="relative z-10">
                 <div className="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-primary to-accent-2 mb-4">
-                  <img src={formData.image || INITIAL_DATA.image} alt="Preview" className="w-full h-full rounded-full object-cover border-2 border-[#050711]" />
+                  <img src={formData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Admin')}&size=400&background=7c6bff&color=fff`} 
+                    alt="Preview" className="w-full h-full rounded-full object-cover border-2 border-[#050711]" 
+                    onError={(e) => { 
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'Admin')}&size=400&background=7c6bff&color=fff`; 
+                    }}
+                  />
                 </div>
                 <div className="inline-block px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-semibold mb-3">
-                  {formData.role || 'Your Role'}
+                  {formData.title || 'Your Title'}
                 </div>
                 <h4 className="text-2xl font-bold text-white mb-2">{formData.name || 'Your Name'}</h4>
                 <p className="text-[11px] text-[--text-muted] max-w-[240px] mx-auto leading-relaxed">
@@ -295,10 +282,10 @@ const AdminHero = () => {
                 </p>
                 
                 <div className="flex justify-center gap-3 mt-6">
-                  {formData.social.github && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Globe className="w-3.5 h-3.5 text-white/70" /></div>}
-                  {formData.social.linkedin && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Briefcase className="w-3.5 h-3.5 text-white/70" /></div>}
-                  {formData.social.twitter && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><MessageCircle className="w-3.5 h-3.5 text-white/70" /></div>}
-                  {formData.social.instagram && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Camera className="w-3.5 h-3.5 text-white/70" /></div>}
+                  {formData.socialLinks?.github && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Globe className="w-3.5 h-3.5 text-white/70" /></div>}
+                  {formData.socialLinks?.linkedin && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Briefcase className="w-3.5 h-3.5 text-white/70" /></div>}
+                  {formData.socialLinks?.twitter && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><MessageCircle className="w-3.5 h-3.5 text-white/70" /></div>}
+                  {formData.socialLinks?.instagram && <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Camera className="w-3.5 h-3.5 text-white/70" /></div>}
                 </div>
               </div>
             </div>

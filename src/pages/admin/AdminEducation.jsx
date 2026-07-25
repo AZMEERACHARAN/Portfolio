@@ -1,32 +1,57 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, Plus, Trash2, Edit2, X, CheckCircle, GraduationCap } from 'lucide-react';
-import { getEducationData, saveEducationData } from '../../services/educationApi';
+import { Save, Plus, Trash2, Edit2, X, CheckCircle, GraduationCap, ArrowUp, ArrowDown } from 'lucide-react';
+import { subscribeToEducation, addEducation, updateEducation, deleteEducation, migrateEducationToFirestore, reorderEducation } from '../../services/educationService';
 
 const EMPTY_EDU = {
+  institutionName: '',
   degree: '',
-  institute: '',
-  duration: '',
-  description: ''
+  specialization: '',
+  startYear: '',
+  endYear: '',
+  grade: '',
+  location: '',
+  description: '',
+  isVisible: true
 };
 
 const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all";
 const labelClass = "block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider";
 
 const AdminEducation = () => {
-  const [educationList, setEducationList] = useState(() => getEducationData() || []);
+  const [educationList, setEducationList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_EDU);
   const [showForm, setShowForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [errorToast, setErrorToast] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [errors, setErrors] = useState({});
 
+  React.useEffect(() => {
+    const init = async () => {
+      await migrateEducationToFirestore();
+      
+      const unsubscribe = subscribeToEducation((data) => {
+        setEducationList(data);
+        setIsLoading(false);
+      }, (err) => {
+        setErrorToast(err.message || "Failed to load education records");
+        setIsLoading(false);
+      });
+
+      return () => unsubscribe();
+    };
+    
+    init();
+  }, []);
+
   const validate = () => {
     const e = {};
-    if (!form.degree.trim()) e.degree = 'Degree is required';
-    if (!form.institute.trim()) e.institute = 'Institute is required';
+    if (!form.degree?.trim()) e.degree = 'Degree is required';
+    if (!form.institutionName?.trim()) e.institutionName = 'Institution Name is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -51,31 +76,63 @@ const AdminEducation = () => {
     setShowForm(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    let updated;
-    if (editingId) {
-      updated = educationList.map(item => item.id === editingId ? { ...item, ...form } : item);
-    } else {
-      updated = [...educationList, { id: Date.now().toString(), ...form }];
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        await updateEducation(editingId, form);
+      } else {
+        await addEducation({ ...form, displayOrder: educationList.length });
+      }
+      setShowForm(false);
+      setEditingId(null);
+      setForm(EMPTY_EDU);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Failed to save education", error);
+      setErrorToast(error.message || "Failed to save education.");
+      setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setIsSaving(false);
     }
-    setEducationList(updated);
-    saveEducationData(updated);
-    setShowForm(false);
-    setEditingId(null);
-    setForm(EMPTY_EDU);
   };
 
-  const handleDelete = (id) => {
-    const updated = educationList.filter(item => item.id !== id);
-    setEducationList(updated);
-    saveEducationData(updated);
-    setDeleteId(null);
+  const handleDelete = async (id) => {
+    try {
+      await deleteEducation(id);
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Failed to delete education", error);
+      setErrorToast(error.message || "Failed to delete education.");
+      setTimeout(() => setErrorToast(null), 5000);
+    }
+  };
+
+  const handleReorder = async (index, direction) => {
+    const newList = [...educationList];
+    if (direction === 'up' && index > 0) {
+      [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+    } else if (direction === 'down' && index < newList.length - 1) {
+      [newList[index + 1], newList[index]] = [newList[index], newList[index + 1]];
+    } else {
+      return;
+    }
+    
+    // Optimistic update
+    setEducationList(newList);
+    try {
+      await reorderEducation(newList);
+    } catch (error) {
+      console.error("Failed to reorder", error);
+      setErrorToast("Failed to reorder.");
+    }
   };
 
   const handleSaveAll = () => {
     setIsSaving(true);
-    saveEducationData(educationList);
+    saveData('educationData', educationList);
     setTimeout(() => {
       setIsSaving(false);
       setShowToast(true);
@@ -114,7 +171,12 @@ const AdminEducation = () => {
       </div>
 
       {/* Grid or Empty State */}
-      {!showForm && (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
+          <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+          <p className="text-white/40 text-sm">Loading education from database...</p>
+        </div>
+      ) : !showForm && (
         educationList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
             <GraduationCap className="w-12 h-12 text-white/20 mb-4" />
@@ -133,6 +195,16 @@ const AdminEducation = () => {
                 <div className="flex justify-between items-start mb-3">
                   <h3 className="text-white font-semibold">{item.degree}</h3>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {index > 0 && (
+                      <button onClick={() => handleReorder(index, 'up')} className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all">
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {index < educationList.length - 1 && (
+                      <button onClick={() => handleReorder(index, 'down')} className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all">
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <button onClick={() => handleOpenEdit(item)} className="p-1.5 rounded-lg text-white/50 hover:text-primary hover:bg-primary/10 transition-all">
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -141,8 +213,10 @@ const AdminEducation = () => {
                     </button>
                   </div>
                 </div>
-                <p className="text-primary text-sm font-medium mb-1">{item.institute}</p>
-                <span className="inline-block px-2 py-0.5 rounded bg-white/5 text-white/50 text-xs mb-3">{item.duration}</span>
+                <p className="text-primary text-sm font-medium mb-1">{item.institutionName || item.institute}</p>
+                <span className="inline-block px-2 py-0.5 rounded bg-white/5 text-white/50 text-xs mb-3">
+                  {item.startYear && item.endYear ? `${item.startYear} - ${item.endYear}` : item.duration}
+                </span>
                 <p className="text-[--text-muted] text-xs line-clamp-3">{item.description}</p>
               </motion.div>
             ))}
@@ -170,23 +244,43 @@ const AdminEducation = () => {
               <div className="space-y-5">
                 <div>
                   <label className={labelClass}>Degree / Title *</label>
-                  <input type="text" name="degree" value={form.degree} onChange={handleChange} className={`${inputClass} ${errors.degree ? 'border-red-500/50' : ''}`} placeholder="e.g. B.Tech in Computer Science" />
+                  <input type="text" name="degree" value={form.degree || ''} onChange={handleChange} className={`${inputClass} ${errors.degree ? 'border-red-500/50' : ''}`} placeholder="e.g. B.Tech" />
                   {errors.degree && <p className="text-red-400 text-xs mt-1">{errors.degree}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>Institute *</label>
-                  <input type="text" name="institute" value={form.institute} onChange={handleChange} className={`${inputClass} ${errors.institute ? 'border-red-500/50' : ''}`} placeholder="e.g. University Name" />
-                  {errors.institute && <p className="text-red-400 text-xs mt-1">{errors.institute}</p>}
+                  <label className={labelClass}>Institution Name *</label>
+                  <input type="text" name="institutionName" value={form.institutionName || form.institute || ''} onChange={handleChange} className={`${inputClass} ${errors.institutionName ? 'border-red-500/50' : ''}`} placeholder="e.g. University Name" />
+                  {errors.institutionName && <p className="text-red-400 text-xs mt-1">{errors.institutionName}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>Duration</label>
-                  <input type="text" name="duration" value={form.duration} onChange={handleChange} className={inputClass} placeholder="e.g. 2020 - 2024" />
+                  <label className={labelClass}>Specialization</label>
+                  <input type="text" name="specialization" value={form.specialization || ''} onChange={handleChange} className={inputClass} placeholder="e.g. Computer Science" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Start Year</label>
+                    <input type="text" name="startYear" value={form.startYear || ''} onChange={handleChange} className={inputClass} placeholder="e.g. 2020" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>End Year</label>
+                    <input type="text" name="endYear" value={form.endYear || ''} onChange={handleChange} className={inputClass} placeholder="e.g. 2024" />
+                  </div>
                 </div>
               </div>
               <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Grade / CGPA</label>
+                    <input type="text" name="grade" value={form.grade || ''} onChange={handleChange} className={inputClass} placeholder="e.g. 3.8 or 90%" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Location</label>
+                    <input type="text" name="location" value={form.location || ''} onChange={handleChange} className={inputClass} placeholder="e.g. New York, NY" />
+                  </div>
+                </div>
                 <div>
                   <label className={labelClass}>Description</label>
-                  <textarea name="description" value={form.description} onChange={handleChange} rows={5} className={`${inputClass} resize-none`} placeholder="Details about your studies, achievements, etc." />
+                  <textarea name="description" value={form.description || ''} onChange={handleChange} rows={5} className={`${inputClass} resize-none`} placeholder="Details about your studies, achievements, etc." />
                 </div>
               </div>
             </div>
@@ -231,6 +325,24 @@ const AdminEducation = () => {
             <CheckCircle className="w-5 h-5" />
             <span className="text-sm font-medium">Education saved successfully!</span>
             <button onClick={() => setShowToast(false)} className="ml-2 text-green-400/60 hover:text-green-400">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Toast */}
+      <AnimatePresence>
+        {errorToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(239,68,68,0.2)] text-red-400"
+          >
+            <X className="w-5 h-5" />
+            <span className="text-sm font-medium">{errorToast}</span>
+            <button onClick={() => setErrorToast(null)} className="ml-2 text-red-400/60 hover:text-red-400">
               <X className="w-4 h-4" />
             </button>
           </motion.div>

@@ -4,13 +4,15 @@ import {
   Save, Plus, Trash2, Edit2, X, CheckCircle,
   ExternalLink, GitBranch, FolderGit2, Upload, Star, StarOff, Image as ImageIcon
 } from 'lucide-react';
-import { getProjectsData, saveProjectsData } from '../../services/projectsApi';
+import { subscribeToProjects, addProject, updateProject, deleteProject, migrateProjectsToFirestore } from '../../services/projectsService';
 
 const STATUSES = ['Completed', 'Ongoing', 'Planned'];
 
 const EMPTY_PROJECT = {
   title: '',
   description: '',
+  overview: '',
+  projectGoal: '',
   technologies: '',
   github: '',
   demo: '',
@@ -29,12 +31,14 @@ const STATUS_COLORS = {
 };
 
 const AdminProjects = () => {
-  const [projects, setProjects] = useState(() => getProjectsData() || []);
+  const [projects, setProjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingProject, setEditingProject] = useState(null);
   const [form, setForm] = useState(EMPTY_PROJECT);
   const [showForm, setShowForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [errorToast, setErrorToast] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -52,14 +56,24 @@ const AdminProjects = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setForm(prev => ({ ...prev, image: reader.result }));
-      reader.readAsDataURL(file);
-    }
-  };
+
+  React.useEffect(() => {
+    const init = async () => {
+      await migrateProjectsToFirestore();
+      
+      const unsubscribe = subscribeToProjects((data) => {
+        setProjects(data);
+        setIsLoading(false);
+      }, (err) => {
+        setErrorToast(err.message || "Failed to load projects");
+        setIsLoading(false);
+      });
+
+      return () => unsubscribe();
+    };
+    
+    init();
+  }, []);
 
   const handleOpenNew = () => {
     setEditingProject(null);
@@ -70,36 +84,51 @@ const AdminProjects = () => {
 
   const handleOpenEdit = (project) => {
     setEditingProject(project.id);
-    setForm({ ...project });
+    setForm({
+      ...project,
+      overview: project.overview || '',
+      projectGoal: project.projectGoal || ''
+    });
     setErrors({});
     setShowForm(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    let updated;
-    if (editingProject) {
-      updated = projects.map(p => p.id === editingProject ? { ...p, ...form } : p);
-    } else {
-      updated = [...projects, { id: Date.now().toString(), ...form }];
+    setIsSaving(true);
+    try {
+      if (editingProject) {
+        await updateProject(editingProject, form);
+      } else {
+        await addProject(form);
+      }
+      setShowForm(false);
+      setEditingProject(null);
+      setForm(EMPTY_PROJECT);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Failed to save project", error);
+      setErrorToast(error.message || "Failed to save project.");
+      setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setIsSaving(false);
     }
-    setProjects(updated);
-    saveProjectsData(updated); // Auto-persist immediately
-    setShowForm(false);
-    setEditingProject(null);
-    setForm(EMPTY_PROJECT);
   };
 
-  const handleDelete = (id) => {
-    const updated = projects.filter(p => p.id !== id);
-    setProjects(updated);
-    saveProjectsData(updated); // Auto-persist immediately
-    setDeleteId(null);
+  const handleDelete = async (id) => {
+    try {
+      await deleteProject(id);
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Failed to delete project", error);
+      setErrorToast(error.message || "Failed to delete project.");
+      setTimeout(() => setErrorToast(null), 5000);
+    }
   };
 
   const handleSaveAll = () => {
     setIsSaving(true);
-    saveProjectsData(projects);
     setTimeout(() => {
       setIsSaving(false);
       setShowToast(true);
@@ -138,7 +167,12 @@ const AdminProjects = () => {
       </div>
 
       {/* Projects Grid or Empty State */}
-      {!showForm && (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
+          <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+          <p className="text-white/40 text-sm">Loading projects from database...</p>
+        </div>
+      ) : !showForm && (
         projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center bg-[#0a0d1c]/50 rounded-2xl border border-white/6">
             <FolderGit2 className="w-12 h-12 text-white/20 mb-4" />
@@ -234,8 +268,18 @@ const AdminProjects = () => {
 
                 <div>
                   <label className={labelClass}>Description *</label>
-                  <textarea name="description" value={form.description} onChange={handleChange} rows={4} className={`${inputClass} resize-none ${errors.description ? 'border-red-500/50' : ''}`} placeholder="Brief description of the project..." />
+                  <textarea name="description" value={form.description} onChange={handleChange} rows={2} className={`${inputClass} resize-y ${errors.description ? 'border-red-500/50' : ''}`} placeholder="Main Header Description..." />
                   {errors.description && <p className="text-red-400 text-xs mt-1">{errors.description}</p>}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Overview</label>
+                  <textarea name="overview" value={form.overview} onChange={handleChange} rows={3} className={`${inputClass} resize-y`} placeholder="Detailed overview..." />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Project Goal</label>
+                  <textarea name="projectGoal" value={form.projectGoal} onChange={handleChange} rows={3} className={`${inputClass} resize-y`} placeholder="Project goal..." />
                 </div>
 
                 <div>
@@ -259,11 +303,11 @@ const AdminProjects = () => {
               <div className="space-y-5">
                 {/* Image Upload */}
                 <div>
-                  <label className={labelClass}>Project Image</label>
+                  <label className={labelClass}>Project Image URL</label>
                   <div className="mt-1 flex gap-4 items-start">
                     <div className="w-28 h-28 rounded-xl overflow-hidden bg-[#0f1123] border border-white/10 shrink-0 flex items-center justify-center">
                       {form.image ? (
-                        <img src={form.image} alt="preview" className="w-full h-full object-cover" />
+                        <img src={form.image} alt="preview" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }} />
                       ) : (
                         <div className="flex flex-col items-center gap-1 text-white/20">
                           <ImageIcon className="w-6 h-6" />
@@ -271,17 +315,21 @@ const AdminProjects = () => {
                         </div>
                       )}
                     </div>
-                    <div>
-                      <input type="file" id="projectImage" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                      <label htmlFor="projectImage" className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-white cursor-pointer transition-colors">
-                        <Upload className="w-4 h-4" /> Choose Image
-                      </label>
+                    <div className="flex-1">
+                      <input 
+                        type="url" 
+                        name="image" 
+                        value={form.image} 
+                        onChange={handleChange} 
+                        className={inputClass} 
+                        placeholder="https://example.com/project-image.jpg" 
+                      />
                       {form.image && (
                         <button onClick={() => setForm(p => ({ ...p, image: '' }))} className="mt-2 flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors">
-                          <X className="w-3 h-3" /> Remove
+                          <X className="w-3 h-3" /> Clear URL
                         </button>
                       )}
-                      <p className="text-[--text-muted] text-xs mt-2">Recommended: 16:9 image. Max 2MB.</p>
+                      <p className="text-[--text-muted] text-xs mt-2">Paste a direct image URL (e.g. from imgur). Recommended: 16:9 aspect ratio.</p>
                     </div>
                   </div>
                 </div>
@@ -358,6 +406,23 @@ const AdminProjects = () => {
             <CheckCircle className="w-5 h-5" />
             <span className="text-sm font-medium">Projects saved successfully!</span>
             <button onClick={() => setShowToast(false)} className="ml-2 text-green-400/60 hover:text-green-400">
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Error Toast */}
+      <AnimatePresence>
+        {errorToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgba(239,68,68,0.2)] text-red-400"
+          >
+            <X className="w-5 h-5" />
+            <span className="text-sm font-medium">{errorToast}</span>
+            <button onClick={() => setErrorToast(null)} className="ml-2 text-red-400/60 hover:text-red-400">
               <X className="w-4 h-4" />
             </button>
           </motion.div>

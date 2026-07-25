@@ -6,10 +6,12 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase/firebase';
 
 // ── Derive a readable page title from the route ───────────────────────────────
 const PAGE_TITLES = {
-  '/admin':              { title: 'Dashboard',    sub: 'Overview of your portfolio' },
+  '/admin/dashboard':    { title: 'Dashboard',    sub: 'Overview of your portfolio' },
   '/admin/hero':         { title: 'Hero Section', sub: 'Edit your hero banner' },
   '/admin/about':        { title: 'About',        sub: 'Update your bio & info' },
   '/admin/skills':       { title: 'Skills',       sub: 'Manage your skills & tools' },
@@ -77,9 +79,13 @@ const AdminHeader = ({ onMenuClick }) => {
 
   const pageInfo = PAGE_TITLES[location.pathname] || { title: 'Admin', sub: '' };
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin-auth');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/admin');
+    } catch (error) {
+      console.error('Error signing out', error);
+    }
   };
 
   return (
@@ -119,7 +125,7 @@ const AdminHeader = ({ onMenuClick }) => {
       <div className="flex items-center gap-2 shrink-0">
         {/* View Portfolio */}
         <motion.a
-          href="/portfolio"
+          href="/"
           target="_blank"
           rel="noreferrer"
           whileHover={{ scale: 1.04 }}

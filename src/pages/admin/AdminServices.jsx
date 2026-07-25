@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Plus, Trash2, Edit2, X, CheckCircle, Code2, Smartphone, Layout, Palette, Briefcase, Zap, Globe, Server, Database } from 'lucide-react';
-import { getServicesData, saveServicesData } from '../../services/servicesApi';
+import { getData, saveData } from '../../services/dataService';
 
 const ICON_MAP = {
   Code2: <Code2 className="w-5 h-5" />,
@@ -25,7 +25,7 @@ const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 p
 const labelClass = "block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider";
 
 const AdminServices = () => {
-  const [services, setServices] = useState(() => getServicesData() || []);
+  const [services, setServices] = useState(() => getData('servicesData') || []);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_SRV);
   const [showForm, setShowForm] = useState(false);
@@ -68,7 +68,7 @@ const AdminServices = () => {
       updated = [...services, { id: Date.now().toString(), ...form }];
     }
     setServices(updated);
-    saveServicesData(updated);
+    saveData('servicesData', updated);
     setShowForm(false);
     setEditingId(null);
   };
@@ -76,7 +76,7 @@ const AdminServices = () => {
   const handleDelete = (id) => {
     const updated = services.filter(item => item.id !== id);
     setServices(updated);
-    saveServicesData(updated);
+    saveData('servicesData', updated);
     setDeleteId(null);
   };
 

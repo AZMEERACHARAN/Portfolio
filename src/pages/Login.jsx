@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, Code, Sparkles, ArrowRight } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase/firebase';
+import { useAuth } from '../context/AuthContext';
 
 const GithubIcon = (props) => (
   <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
@@ -67,6 +70,13 @@ const Login = () => {
   const emailRef    = React.useRef(null);
   const passwordRef = React.useRef(null);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/admin/dashboard');
+    }
+  }, [currentUser, navigate]);
 
   // Dynamic Greeting
   const hour = new Date().getHours();
@@ -82,26 +92,28 @@ const Login = () => {
   }, []);
 
   // Admin login — checks credentials
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     if (e) e.preventDefault();
     setAuthError('');
     const email = emailRef.current?.value?.trim();
     const pass  = passwordRef.current?.value;
-    if (email === ADMIN_EMAIL && pass === ADMIN_PASSWORD) {
-      setLoading(true);
-      localStorage.setItem('admin-auth', 'true');
-      setTimeout(() => navigate('/admin'), 900);
-    } else {
-      setAuthError('Invalid credentials. Use the demo credentials below.');
+    
+    if (!email || !pass) {
+      setAuthError('Please enter both email and password.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      setTimeout(() => navigate('/admin/dashboard'), 900);
+    } catch (error) {
+      setLoading(false);
+      setAuthError('Invalid credentials or login failed. Please try again.');
     }
   };
 
-  // Visitor — skips auth, goes to portfolio
-  const handleVisitorLogin = () => {
-    setLoading(true);
-    localStorage.removeItem('admin-auth');
-    setTimeout(() => navigate('/portfolio'), 900);
-  };
+
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[#030308] overflow-hidden text-text selection:bg-primary/30">
@@ -368,15 +380,7 @@ const Login = () => {
                       </div>
                     </MagneticButton>
 
-                    <MagneticButton
-                      type="button"
-                      onClick={handleVisitorLogin}
-                      className="group/btn2 relative w-full py-4 rounded-2xl font-semibold text-white bg-white/5 border border-white/10 overflow-hidden hover:bg-white/10 transition-all duration-300"
-                    >
-                      <div className="relative flex items-center justify-center gap-2">
-                        Continue as Visitor
-                      </div>
-                    </MagneticButton>
+
                   </div>
                 </form>
 
@@ -386,7 +390,7 @@ const Login = () => {
                     <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest whitespace-nowrap">Demo Credentials</span>
                     <div className="h-px w-full bg-gradient-to-l from-transparent to-white/10" />
                   </div>
-                  <p className="text-[11px] text-text-muted/70 font-mono">user: visitor@azmeera.dev &nbsp;|&nbsp; pass: demo123</p>
+                  <p className="text-[11px] text-text-muted/70 font-mono">user: admin@azmeera.dev &nbsp;|&nbsp; pass: admin123</p>
                 </div>
               </motion.div>
             </motion.div>

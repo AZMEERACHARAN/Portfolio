@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Plus, Trash2, Edit2, X, CheckCircle, Trophy, FolderGit2, Cpu, GitBranch, Code2, Award, Clock, Star, Target } from 'lucide-react';
-import { getAchievementsData, saveAchievementsData } from '../../services/achievementsApi';
+import { getData, saveData } from '../../services/dataService';
 
 const ICON_MAP = {
   FolderGit2: <FolderGit2 className="w-5 h-5" />,
@@ -26,7 +26,7 @@ const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 p
 const labelClass = "block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider";
 
 const AdminAchievements = () => {
-  const [achievements, setAchievements] = useState(() => getAchievementsData() || []);
+  const [achievements, setAchievements] = useState(() => getData('achievementsData') || []);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_ACH);
   const [showForm, setShowForm] = useState(false);
@@ -72,7 +72,7 @@ const AdminAchievements = () => {
       updated = [...achievements, { id: Date.now().toString(), ...form }];
     }
     setAchievements(updated);
-    saveAchievementsData(updated);
+    saveData('achievementsData', updated);
     setShowForm(false);
     setEditingId(null);
     setForm(EMPTY_ACH);
@@ -81,7 +81,7 @@ const AdminAchievements = () => {
   const handleDelete = (id) => {
     const updated = achievements.filter(item => item.id !== id);
     setAchievements(updated);
-    saveAchievementsData(updated);
+    saveData('achievementsData', updated);
     setDeleteId(null);
   };
 

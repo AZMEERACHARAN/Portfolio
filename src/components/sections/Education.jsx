@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { GraduationCap, Award, BookOpen, Star, Sparkles } from 'lucide-react';
-import { getEducationData } from '../../services/educationApi';
+import { subscribeToEducation } from '../../services/educationService';
 
 const Education = () => {
   const [educationData, setEducationData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadEducation = () => {
-      const data = getEducationData();
-      setEducationData(data || []);
-    };
-    loadEducation();
-    window.addEventListener('storage', loadEducation);
-    return () => window.removeEventListener('storage', loadEducation);
+    const unsubscribe = subscribeToEducation((data) => {
+      setEducationData(data);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -51,7 +50,12 @@ const Education = () => {
         </div>
 
         {/* Timeline Container */}
-        {educationData.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+            <p className="text-white/40 text-sm">Loading education...</p>
+          </div>
+        ) : educationData.length === 0 ? (
           <div className="text-center text-white/40 py-20">
             No education records added yet. Add them in the admin panel.
           </div>
@@ -92,13 +96,13 @@ const Education = () => {
                       <div className={`absolute inset-0 bg-gradient-to-br from-primary to-accent opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500`} />
                       
                       <span className="inline-block px-3 py-1 mb-4 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-white/70">
-                        {item.duration}
+                        {item.startYear && item.endYear ? `${item.startYear} - ${item.endYear}` : item.duration}
                       </span>
                       <h3 className="text-2xl font-bold text-white mb-1 group-hover:text-primary-2 transition-colors">
                         {item.degree}
                       </h3>
                       <h4 className="text-sm font-medium text-primary mb-4 flex items-center gap-2 justify-start md:justify-normal">
-                        <BookOpen className="w-4 h-4" /> {item.institute}
+                        <BookOpen className="w-4 h-4" /> {item.institutionName || item.institute}
                       </h4>
                       
                       <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">

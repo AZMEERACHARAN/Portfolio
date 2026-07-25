@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { subscribeToSettings } from '../services/settingsService';
 
 /**
  * Premium Logo Mark — "The Prism Core"
@@ -145,6 +146,15 @@ export const Logo = ({
   className = '',
   onClick,
 }) => {
+  const [settings, setSettings] = useState({});
+
+  useEffect(() => {
+    const unsubscribe = subscribeToSettings((data) => {
+      if (data) setSettings(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const configs = {
     navbar: { markSize: 34, nameSize: 'text-sm', gap: 'gap-2.5', stacked: false },
     footer: { markSize: 40, nameSize: 'text-base', gap: 'gap-3', stacked: false },
@@ -171,7 +181,11 @@ export const Logo = ({
     </div>
   );
 
-  const mark = (
+  const mark = settings.logoUrl ? (
+    <div className="relative flex-shrink-0 flex items-center justify-center overflow-hidden rounded-xl" style={{ width: config.markSize, height: config.markSize }}>
+      <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+    </div>
+  ) : (
     <div className="relative flex-shrink-0">
       {/* Ambient glow behind mark */}
       <div

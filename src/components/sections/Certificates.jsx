@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Award, ExternalLink, X, Calendar, Building2 } from 'lucide-react';
-import { getCertificatesData } from '../../services/certificatesApi';
+import { subscribeToCertificates } from '../../services/certificateService';
 
 const Certificates = () => {
   const [selectedCert, setSelectedCert] = useState(null);
   const [certificates, setCertificates] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadCertificates = () => {
-      const data = getCertificatesData();
-      setCertificates(data || []);
-    };
-    loadCertificates();
-    window.addEventListener('storage', loadCertificates);
-    return () => window.removeEventListener('storage', loadCertificates);
+    const unsubscribe = subscribeToCertificates((data) => {
+      setCertificates(data);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -44,7 +43,12 @@ const Certificates = () => {
           </motion.h2>
         </div>
 
-        {certificates.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+            <p className="text-white/40 text-sm">Loading certificates...</p>
+          </div>
+        ) : certificates.length === 0 ? (
           <div className="text-center text-white/40 py-20">
             No certificates added yet. Add them in the admin panel.
           </div>
@@ -60,10 +64,10 @@ const Certificates = () => {
                 className="group glass rounded-3xl overflow-hidden border border-white/10 hover:border-white/20 transition-all hover:-translate-y-2 hover:shadow-[0_10px_40px_rgba(124,107,255,0.15)] flex flex-col"
               >
                 <div className="relative h-48 overflow-hidden bg-black cursor-pointer" onClick={() => setSelectedCert(cert)}>
-                  {cert.image ? (
+                  {cert.certificateImageUrl || cert.image ? (
                     <img 
-                      src={cert.image} 
-                      alt={cert.name} 
+                      src={cert.certificateImageUrl || cert.image} 
+                      alt={cert.title || cert.name} 
                       className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
                     />
                   ) : (
@@ -77,8 +81,8 @@ const Certificates = () => {
                     <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg`}>
                       <Award className="w-5 h-5 text-white" />
                     </div>
-                    {cert.link && (
-                      <a href={cert.link} target="_blank" rel="noreferrer" className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors" onClick={(e) => e.stopPropagation()}>
+                    {(cert.credentialUrl || cert.link) && (
+                      <a href={cert.credentialUrl || cert.link} target="_blank" rel="noreferrer" className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors" onClick={(e) => e.stopPropagation()}>
                         Verify <ExternalLink className="w-3 h-3" />
                       </a>
                     )}
@@ -87,15 +91,15 @@ const Certificates = () => {
 
                 <div className="p-6 flex-grow flex flex-col">
                   <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary-2 transition-colors">
-                    {cert.name}
+                    {cert.title || cert.name}
                   </h3>
                   <div className="mt-auto space-y-2 text-sm text-text-muted">
                     <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-primary" /> {cert.organization}
+                      <Building2 className="w-4 h-4 text-primary" /> {cert.issuer || cert.organization}
                     </div>
-                    {cert.date && (
+                    {(cert.issueDate || cert.date) && (
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-accent" /> {cert.date}
+                        <Calendar className="w-4 h-4 text-accent" /> {cert.issueDate || cert.date}
                       </div>
                     )}
                   </div>
@@ -133,10 +137,10 @@ const Certificates = () => {
 
               <div className="p-2 sm:p-4">
                 <div className="relative aspect-[1.4/1] w-full bg-black rounded-xl overflow-hidden flex items-center justify-center">
-                  {selectedCert.image ? (
+                  {selectedCert.certificateImageUrl || selectedCert.image ? (
                     <img 
-                      src={selectedCert.image} 
-                      alt={selectedCert.name} 
+                      src={selectedCert.certificateImageUrl || selectedCert.image} 
+                      alt={selectedCert.title || selectedCert.name} 
                       className="max-w-full max-h-full object-contain"
                     />
                   ) : (
@@ -146,10 +150,10 @@ const Certificates = () => {
                     </div>
                   )}
                   <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
-                    <h3 className="text-2xl font-bold text-white">{selectedCert.name}</h3>
-                    <p className="text-white/70">{selectedCert.organization} {selectedCert.date ? `• ${selectedCert.date}` : ''}</p>
-                    {selectedCert.link && (
-                      <a href={selectedCert.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:text-primary-2 transition-colors">
+                    <h3 className="text-2xl font-bold text-white">{selectedCert.title || selectedCert.name}</h3>
+                    <p className="text-white/70">{selectedCert.issuer || selectedCert.organization} {(selectedCert.issueDate || selectedCert.date) ? `• ${selectedCert.issueDate || selectedCert.date}` : ''}</p>
+                    {(selectedCert.credentialUrl || selectedCert.link) && (
+                      <a href={selectedCert.credentialUrl || selectedCert.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:text-primary-2 transition-colors">
                         View Official Certificate <ExternalLink className="w-3 h-3" />
                       </a>
                     )}

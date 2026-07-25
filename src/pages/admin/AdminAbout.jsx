@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, RotateCcw, Upload, X, CheckCircle, MapPin, Mail, Phone, Image as ImageIcon } from 'lucide-react';
-import { getAboutData, saveAboutData } from '../../services/aboutApi';
+import { getData, saveData } from '../../services/dataService';
 
 const INITIAL_DATA = {
   biography: '',
   careerObjective: '',
   interests: '',
-  location: '',
-  email: '',
-  phone: '',
-  image: ''
 };
 
 const inputClass = "w-full bg-[#0f1123] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all";
 const labelClass = "block text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider";
 
 const AdminAbout = () => {
-  const [formData, setFormData] = useState(() => getAboutData() || INITIAL_DATA);
+  const [formData, setFormData] = useState(() => {
+    const data = getData('aboutData');
+    return data ? { ...INITIAL_DATA, ...data } : INITIAL_DATA;
+  });
+  const [settings] = useState(() => getData('websiteSettings') || {});
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -37,23 +37,15 @@ const AdminAbout = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleSave = (e) => {
     e.preventDefault();
     if (!validate()) return;
     
     setIsSaving(true);
-    saveAboutData(formData);
+    const existingData = getData('aboutData') || {};
+    saveData('aboutData', { ...existingData, ...formData });
     
     setTimeout(() => {
       setIsSaving(false);
@@ -153,72 +145,7 @@ const AdminAbout = () => {
             </div>
           </div>
 
-          {/* Media & Contact */}
-          <div className="bg-[#0a0d1c]/70 backdrop-blur-xl border border-white/6 rounded-2xl p-6">
-            <h2 className="text-white font-semibold mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-accent-2/20 text-accent-2 flex items-center justify-center text-xs">02</span>
-              Media & Contact
-            </h2>
-            <div className="space-y-6">
-              {/* Profile Image */}
-              <div>
-                <label className={labelClass}>About Image</label>
-                <div className="mt-2 flex items-center gap-6">
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-white/10 shrink-0 bg-[#0f1123]">
-                    {formData.image ? (
-                      <img src={formData.image} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-[--text-muted]">
-                        <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
-                        <span className="text-[10px]">No Img</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="relative">
-                      <input 
-                        type="file" 
-                        id="aboutImageUpload" 
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden" 
-                      />
-                      <label 
-                        htmlFor="aboutImageUpload"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-white cursor-pointer transition-colors"
-                      >
-                        <Upload className="w-4 h-4" />
-                        Choose new image
-                      </label>
-                    </div>
-                    <p className="text-[--text-muted] text-xs mt-2">Recommended: Portrait or square image. Max size 2MB.</p>
-                  </div>
-                </div>
-              </div>
 
-              {/* Contact Info */}
-              <div className="pt-4 border-t border-white/10 grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="flex items-center gap-2 text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">
-                    <MapPin className="w-3.5 h-3.5" /> Location
-                  </label>
-                  <input type="text" name="location" value={formData.location} onChange={handleChange} className={inputClass} placeholder="New York, USA" />
-                </div>
-                <div>
-                  <label className="flex items-center gap-2 text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">
-                    <Mail className="w-3.5 h-3.5" /> Email
-                  </label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} className={inputClass} placeholder="hello@example.com" />
-                </div>
-                <div>
-                  <label className="flex items-center gap-2 text-xs font-medium text-[--text-muted] mb-1.5 uppercase tracking-wider">
-                    <Phone className="w-3.5 h-3.5" /> Phone
-                  </label>
-                  <input type="text" name="phone" value={formData.phone} onChange={handleChange} className={inputClass} placeholder="+1 234 567 890" />
-                </div>
-              </div>
-            </div>
-          </div>
         </motion.div>
 
         {/* Live Preview (Right 2 cols) */}
@@ -240,10 +167,10 @@ const AdminAbout = () => {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-50" />
               
               <div className="relative z-10 flex flex-col gap-4">
-                {formData.image && (
-                  <img src={formData.image} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-white/10" />
+
+                {settings.profileImage && (
+                  <img src={settings.profileImage} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-white/10" />
                 )}
-                
                 <h4 className="text-lg font-bold text-white">Who I Am</h4>
                 <p className="text-xs text-[--text-muted] leading-relaxed line-clamp-4">
                   {formData.biography || 'Your biography will appear here...'}
@@ -269,10 +196,11 @@ const AdminAbout = () => {
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-white/5 space-y-2">
-                  {formData.location && <p className="text-[10px] text-[--text-muted] flex items-center gap-2"><MapPin className="w-3 h-3"/> {formData.location}</p>}
-                  {formData.email && <p className="text-[10px] text-[--text-muted] flex items-center gap-2"><Mail className="w-3 h-3"/> {formData.email}</p>}
-                  {formData.phone && <p className="text-[10px] text-[--text-muted] flex items-center gap-2"><Phone className="w-3 h-3"/> {formData.phone}</p>}
+                  {settings.location && <p className="text-[10px] text-[--text-muted] flex items-center gap-2"><MapPin className="w-3 h-3"/> {settings.location}</p>}
+                  {settings.contactEmail && <p className="text-[10px] text-[--text-muted] flex items-center gap-2"><Mail className="w-3 h-3"/> {settings.contactEmail}</p>}
+                  {settings.contactPhone && <p className="text-[10px] text-[--text-muted] flex items-center gap-2"><Phone className="w-3 h-3"/> {settings.contactPhone}</p>}
                 </div>
+
               </div>
             </div>
           </div>

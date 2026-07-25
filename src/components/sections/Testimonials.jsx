@@ -1,41 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquareQuote, Star } from 'lucide-react';
+import { usePortfolioData } from '../../hooks/usePortfolioData';
 
-const testimonials = [
-  {
-    id: 1,
-    name: 'Sarah Jenkins',
-    role: 'Product Manager',
-    image: 'https://i.pravatar.cc/150?img=47',
-    review: 'Charan built an incredible portfolio for me. His attention to detail and mastery of React made the final product far exceed my expectations. Highly recommended!',
-    rating: 5
-  },
-  {
-    id: 2,
-    name: 'David Chen',
-    role: 'Startup Founder',
-    image: 'https://i.pravatar.cc/150?img=11',
-    review: 'Working with Charan on our frontend MVP was a breeze. He delivered pixel-perfect UI and ensured everything was responsive across all devices.',
-    rating: 5
-  },
-  {
-    id: 3,
-    name: 'Emily Rodriguez',
-    role: 'UX Designer',
-    image: 'https://i.pravatar.cc/150?img=5',
-    review: 'As a designer, I am very particular about how things look. Charan translated my Figma files into code perfectly. The animations are so smooth!',
-    rating: 5
-  },
-  {
-    id: 4,
-    name: 'Michael Chang',
-    role: 'Senior Engineer',
-    image: 'https://i.pravatar.cc/150?img=33',
-    review: 'Great code quality and folder structure. He understands the importance of writing maintainable React components. A bright future ahead of him.',
-    rating: 4
-  }
-];
+
 
 const TestimonialCard = ({ testimonial }) => (
   <div className="w-[350px] sm:w-[400px] flex-shrink-0 glass p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 mx-4">
@@ -68,6 +36,7 @@ const TestimonialCard = ({ testimonial }) => (
 );
 
 const Testimonials = () => {
+  const testimonials = usePortfolioData('testimonialsData') || [];
   return (
     <section id="testimonials" className="py-32 relative overflow-hidden">
       <div className="container max-w-6xl mx-auto px-6 relative z-10">

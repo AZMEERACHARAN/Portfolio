@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Mail, MapPin, CheckCircle2 } from 'lucide-react';
+import { Send, Mail, MapPin, CheckCircle2, Phone } from 'lucide-react';
+import { getData, saveData } from '../../services/dataService';
+import { subscribeToSettings } from '../../services/settingsService';
+import { subscribeToContact } from '../../services/contactService';
+import { addMessage } from '../../services/messagesService';
 
 const GithubIcon = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
@@ -26,20 +30,53 @@ const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [settingsData, setSettingsData] = useState(null);
+  const [contactData, setContactData] = useState(null);
 
-  const handleSubmit = (e) => {
+  React.useEffect(() => {
+    const unsubSettings = subscribeToSettings((data) => {
+      if (data) setSettingsData(data);
+    });
+    const unsubContact = subscribeToContact((data) => {
+      if (data) setContactData(data);
+    });
+    return () => {
+      unsubSettings();
+      unsubContact();
+    };
+  }, []);
+
+  const activeSocials = socialLinks.map(social => {
+    const firestoreUrl = contactData ? contactData[social.name.toLowerCase()] : null;
+    return {
+      ...social,
+      url: firestoreUrl || ''
+    };
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Mock API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await addMessage({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
+
       setShowSuccess(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
       
       // Hide success message after 5 seconds
       setTimeout(() => setShowSuccess(false), 5000);
-    }, 1500);
+    } catch (error) {
+      console.error("Error submitting message:", error);
+      alert("Failed to send message. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -88,19 +125,31 @@ const Contact = () => {
             <div className="glass p-8 rounded-3xl border border-white/10 flex flex-col gap-8 bg-[#0b0f1e]/80">
               <h3 className="text-2xl font-bold text-white mb-2">Contact Information</h3>
               <p className="text-white/60 text-sm leading-relaxed mb-4">
-                I'm currently available for freelance work and full-time opportunities. If you have a project that needs some creative touch, I'd love to hear about it.
+                {settingsData?.availability || "I'm currently available for freelance work and full-time opportunities. If you have a project that needs some creative touch, I'd love to hear about it."}
               </p>
               
               <div className="space-y-6">
-                <div className="flex items-center gap-4 group cursor-pointer">
+                <a href={`mailto:${contactData?.email || settingsData?.email || 'hello@azmeera.dev'}?subject=Portfolio Inquiry&body=Hello,%0D%0A%0D%0AI visited your portfolio and would like to get in touch regarding...`} className="flex items-center gap-4 group cursor-pointer block">
                   <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary group-hover:bg-primary/20 group-hover:scale-110 group-hover:text-primary-2 transition-all duration-300">
                     <Mail className="w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wider text-text-muted mb-1 font-mono">Email Me At</p>
-                    <p className="text-sm sm:text-base font-medium text-white group-hover:text-primary-2 transition-colors">hello@azmeera.dev</p>
+                    <p className="text-sm sm:text-base font-medium text-white group-hover:text-primary-2 transition-colors">{contactData?.email || settingsData?.email || 'hello@azmeera.dev'}</p>
                   </div>
-                </div>
+                </a>
+
+                {(contactData?.phone || settingsData?.phone) && (
+                  <a href={`tel:${contactData?.phone || settingsData?.phone}`} className="flex items-center gap-4 group cursor-pointer block">
+                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-green-400 group-hover:bg-green-400/20 group-hover:scale-110 group-hover:text-green-300 transition-all duration-300">
+                      <Phone className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-text-muted mb-1 font-mono">Call Me At</p>
+                      <p className="text-sm sm:text-base font-medium text-white group-hover:text-green-300 transition-colors">{contactData?.phone || settingsData?.phone}</p>
+                    </div>
+                  </a>
+                )}
                 
                 <div className="flex items-center gap-4 group cursor-pointer">
                   <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-accent-2 group-hover:bg-accent-2/20 group-hover:scale-110 group-hover:text-accent transition-all duration-300">
@@ -108,7 +157,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wider text-text-muted mb-1 font-mono">Location</p>
-                    <p className="text-sm sm:text-base font-medium text-white group-hover:text-accent-2 transition-colors">Hyderabad, India</p>
+                    <p className="text-sm sm:text-base font-medium text-white group-hover:text-accent-2 transition-colors">{contactData?.location || settingsData?.location || 'Hyderabad, India'}</p>
                   </div>
                 </div>
               </div>
@@ -116,16 +165,22 @@ const Contact = () => {
               <div className="pt-8 border-t border-white/10 mt-4">
                 <p className="text-xs uppercase tracking-wider text-text-muted mb-4 font-mono">Follow Me</p>
                 <div className="flex flex-wrap gap-4">
-                  {socialLinks.map((social) => {
+                  {activeSocials.map((social) => {
                     const Icon = social.icon;
+                    const isDisabled = !social.url;
                     return (
                     <a 
                       key={social.name}
-                      href={social.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`w-12 h-12 rounded-xl bg-white/5 border flex items-center justify-center text-white/70 transition-all duration-300 ${social.color} hover:scale-110 hover:-translate-y-1 shadow-lg`}
+                      href={isDisabled ? undefined : social.url}
+                      target={isDisabled ? undefined : "_blank"}
+                      rel={isDisabled ? undefined : "noopener noreferrer"}
+                      className={`w-12 h-12 rounded-xl bg-white/5 border flex items-center justify-center transition-all duration-300 shadow-lg ${
+                        isDisabled 
+                          ? 'opacity-40 cursor-not-allowed border-transparent text-white/30' 
+                          : `text-white/70 hover:scale-110 hover:-translate-y-1 ${social.color}`
+                      }`}
                       aria-label={social.name}
+                      onClick={(e) => isDisabled && e.preventDefault()}
                     >
                       <Icon className="w-5 h-5" />
                     </a>

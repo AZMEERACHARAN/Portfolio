@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Briefcase, Mail, Settings,
   ChevronDown, ChevronLeft, ChevronRight,
   Home, User, Code2, FolderGit2, GraduationCap,
-  ClipboardList, Award, X
+  ClipboardList, Award, Zap, MessageSquareQuote, Trophy, X
 } from 'lucide-react';
 
 // ── Menu definition ──────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@ const MENU = [
     id: 'dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
-    to: '/admin',
+    to: '/admin/dashboard',
     exact: true,
   },
   {
@@ -29,6 +29,9 @@ const MENU = [
       { id: 'education',    label: 'Education',    icon: GraduationCap, to: '/admin/education' },
       { id: 'experience',   label: 'Experience',   icon: ClipboardList, to: '/admin/experience' },
       { id: 'certificates', label: 'Certificates', icon: Award,         to: '/admin/certificates' },
+      { id: 'services',     label: 'Services',     icon: Zap,           to: '/admin/services' },
+      { id: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote, to: '/admin/testimonials' },
+      { id: 'achievements', label: 'Achievements', icon: Trophy,        to: '/admin/achievements' },
     ],
   },
   {

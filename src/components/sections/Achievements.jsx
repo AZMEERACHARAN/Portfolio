@@ -1,15 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, useInView, useMotionValue, useSpring } from 'framer-motion';
-import { FolderGit2, Cpu, GitBranch, Code2, Award, Clock } from 'lucide-react';
+import { FolderGit2, Cpu, GitBranch, Code2, Award, Clock, Star, Target, Trophy } from 'lucide-react';
+import { usePortfolioData } from '../../hooks/usePortfolioData';
 
-const stats = [
-  { label: 'Projects Completed', value: 15, suffix: '+', icon: FolderGit2, color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/20' },
-  { label: 'Technologies Learned', value: 25, suffix: '+', icon: Cpu, color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/20' },
-  { label: 'GitHub Repositories', value: 40, suffix: '', icon: GitBranch, color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20' },
-  { label: 'Coding Problems Solved', value: 300, suffix: '+', icon: Code2, color: 'text-orange-400', bg: 'bg-orange-400/10 border-orange-400/20' },
-  { label: 'Certificates Earned', value: 8, suffix: '', icon: Award, color: 'text-cyan-400', bg: 'bg-cyan-400/10 border-cyan-400/20' },
-  { label: 'Learning Hours', value: 1200, suffix: '+', icon: Clock, color: 'text-pink-400', bg: 'bg-pink-400/10 border-pink-400/20' }
+const STAT_COLORS = [
+  { color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/20' },
+  { color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/20' },
+  { color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20' },
+  { color: 'text-orange-400', bg: 'bg-orange-400/10 border-orange-400/20' },
+  { color: 'text-cyan-400', bg: 'bg-cyan-400/10 border-cyan-400/20' },
+  { color: 'text-pink-400', bg: 'bg-pink-400/10 border-pink-400/20' }
 ];
+
+const ICONS = {
+  FolderGit2, Cpu, GitBranch, Code2, Award, Clock
+};
 
 const Counter = ({ value, suffix }) => {
   const ref = useRef(null);
@@ -40,6 +45,7 @@ const Counter = ({ value, suffix }) => {
 };
 
 const Achievements = () => {
+  const stats = usePortfolioData('achievementsData') || [];
   return (
     <section id="achievements" className="py-24 relative overflow-hidden">
       
@@ -54,7 +60,8 @@ const Achievements = () => {
         
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {stats.map((stat, index) => {
-            const StatIcon = stat.icon;
+            const StatIcon = ICONS[stat.icon] || Trophy;
+            const style = STAT_COLORS[index % STAT_COLORS.length];
             return (
             <motion.div
               key={stat.label}
@@ -68,16 +75,16 @@ const Achievements = () => {
               <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
               
               <div className="relative z-10 flex flex-col items-center justify-center space-y-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform duration-500`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${style.bg} ${style.color} group-hover:scale-110 transition-transform duration-500`}>
                   <StatIcon className="w-6 h-6" />
                 </div>
                 
-                <div className={`text-4xl sm:text-5xl font-display font-bold ${stat.color} drop-shadow-lg`}>
+                <div className={`text-4xl sm:text-5xl font-display font-bold ${style.color} drop-shadow-lg`}>
                   <Counter value={stat.value} suffix={stat.suffix} />
                 </div>
                 
                 <h3 className="text-sm sm:text-base font-medium text-white/70 tracking-wide">
-                  {stat.label}
+                  {stat.title || stat.label}
                 </h3>
               </div>
             </motion.div>

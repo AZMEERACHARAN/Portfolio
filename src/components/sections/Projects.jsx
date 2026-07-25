@@ -4,7 +4,7 @@ import {
   X, ExternalLink, GitBranch, Layers, Clock, Star,
   FolderGit2, Rocket, Target, Zap
 } from 'lucide-react';
-import { getProjectsData } from '../../services/projectsApi';
+import { subscribeToProjects } from '../../services/projectsService';
 
 const STATUS_COLORS = {
   Completed: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
@@ -15,18 +15,14 @@ const STATUS_COLORS = {
 const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadProjects = () => {
-      const data = getProjectsData();
-      setProjects(data && data.length > 0 ? data : []);
-    };
-
-    loadProjects(); // Initial load
-
-    // Listen for changes from admin panel (cross-tab updates)
-    window.addEventListener('storage', loadProjects);
-    return () => window.removeEventListener('storage', loadProjects);
+    const unsubscribe = subscribeToProjects((data) => {
+      setProjects(data);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -80,8 +76,13 @@ const Projects = () => {
           </motion.p>
         </div>
 
-        {/* Empty State */}
-        {projects.length === 0 ? (
+        {/* Empty / Loading State */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center bg-white/[0.02] border border-white/6 rounded-3xl">
+            <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+            <p className="text-white/40 text-sm">Loading projects...</p>
+          </div>
+        ) : projects.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -279,7 +280,7 @@ const Projects = () => {
                           <Rocket className="w-5 h-5 text-primary" /> Overview
                         </h3>
                         <p className="text-white/70 leading-relaxed text-sm md:text-base whitespace-pre-wrap">
-                          {selectedProject.description}
+                          {selectedProject.overview || selectedProject.description}
                         </p>
                       </div>
 
@@ -288,7 +289,7 @@ const Projects = () => {
                           <Target className="w-4 h-4 text-primary" /> Project Goal
                         </h3>
                         <p className="text-white/70 text-sm leading-relaxed">
-                          {selectedProject.description}
+                          {selectedProject.projectGoal || selectedProject.description}
                         </p>
                       </div>
 

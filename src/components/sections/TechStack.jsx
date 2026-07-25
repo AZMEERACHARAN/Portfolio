@@ -1,200 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Database, Wind, Zap, Coffee, Cpu, GitBranch,
-  GitFork, Monitor, PenTool, Network, Atom, FileJson,
-  FileCode, Palette, Server, Terminal, BrainCircuit
-} from 'lucide-react';
-
-const technologies = [
-  {
-    id: "react",
-    name: "React",
-    icon: Atom,
-    color: "from-[#61DAFB]/40 to-[#61DAFB]/10",
-    glowColor: "shadow-[0_0_30px_rgba(97,218,251,0.4)]",
-    description: "A JavaScript library for building user interfaces.",
-    level: "Advanced",
-    projects: ["Premium Portfolio", "E-Commerce", "Dashboard"],
-    status: "Using daily"
-  },
-  {
-    id: "javascript",
-    name: "JavaScript",
-    icon: FileJson,
-    color: "from-[#F7DF1E]/40 to-[#F7DF1E]/10",
-    glowColor: "shadow-[0_0_30px_rgba(247,223,30,0.4)]",
-    description: "The programming language of the Web.",
-    level: "Advanced",
-    projects: ["Interactive Games", "Web Apps"],
-    status: "Mastering advanced concepts"
-  },
-  {
-    id: "html",
-    name: "HTML5",
-    icon: FileCode,
-    color: "from-[#E34F26]/40 to-[#E34F26]/10",
-    glowColor: "shadow-[0_0_30px_rgba(227,79,38,0.4)]",
-    description: "The standard markup language for documents.",
-    level: "Advanced",
-    projects: ["All Web Projects"],
-    status: "Using daily"
-  },
-  {
-    id: "css",
-    name: "CSS3",
-    icon: Palette,
-    color: "from-[#1572B6]/40 to-[#1572B6]/10",
-    glowColor: "shadow-[0_0_30px_rgba(21,114,182,0.4)]",
-    description: "Style sheet language used for presentation.",
-    level: "Advanced",
-    projects: ["Animated Portfolios", "Responsive Dashboards"],
-    status: "Exploring 3D transforms"
-  },
-  {
-    id: "tailwindcss",
-    name: "Tailwind CSS",
-    icon: Wind,
-    color: "from-[#06B6D4]/40 to-[#06B6D4]/10",
-    glowColor: "shadow-[0_0_30px_rgba(6,182,212,0.4)]",
-    description: "A utility-first CSS framework for rapid UI development.",
-    level: "Advanced",
-    projects: ["Modern Portfolios", "SaaS Landing Pages"],
-    status: "Using daily"
-  },
-  {
-    id: "nodejs",
-    name: "Node.js",
-    icon: Server,
-    color: "from-[#339933]/40 to-[#339933]/10",
-    glowColor: "shadow-[0_0_30px_rgba(51,153,51,0.4)]",
-    description: "An asynchronous event-driven JavaScript runtime.",
-    level: "Intermediate",
-    projects: ["RESTful APIs", "Real-time Chat Apps"],
-    status: "Building microservices"
-  },
-  {
-    id: "express",
-    name: "Express.js",
-    icon: Zap,
-    color: "from-white/40 to-white/10",
-    glowColor: "shadow-[0_0_30px_rgba(255,255,255,0.4)]",
-    description: "Fast, unopinionated web framework for Node.js.",
-    level: "Intermediate",
-    projects: ["Authentication Systems", "CRUD Applications"],
-    status: "Using regularly"
-  },
-  {
-    id: "python",
-    name: "Python",
-    icon: Terminal,
-    color: "from-[#3776AB]/40 to-[#3776AB]/10",
-    glowColor: "shadow-[0_0_30px_rgba(55,118,171,0.4)]",
-    description: "A high-level, general-purpose programming language.",
-    level: "Intermediate",
-    projects: ["Data Scrapers", "Automation Scripts"],
-    status: "Exploring AI integrations"
-  },
-  {
-    id: "java",
-    name: "Java",
-    icon: Coffee,
-    color: "from-[#B07219]/40 to-[#B07219]/10",
-    glowColor: "shadow-[0_0_30px_rgba(176,114,25,0.4)]",
-    description: "A high-level, class-based, object-oriented programming language.",
-    level: "Intermediate",
-    projects: ["Desktop Applications", "Core Algorithms"],
-    status: "Studying design patterns"
-  },
-  {
-    id: "c",
-    name: "C",
-    icon: Cpu,
-    color: "from-[#A8B9CC]/40 to-[#A8B9CC]/10",
-    glowColor: "shadow-[0_0_30px_rgba(168,185,204,0.4)]",
-    description: "A general-purpose, procedural computer programming language.",
-    level: "Intermediate",
-    projects: ["System Utilities", "Algorithm Implementations"],
-    status: "Revisiting memory concepts"
-  },
-  {
-    id: "mysql",
-    name: "MySQL",
-    icon: Database,
-    color: "from-[#4479A1]/40 to-[#4479A1]/10",
-    glowColor: "shadow-[0_0_30px_rgba(68,121,161,0.4)]",
-    description: "An open-source relational database management system.",
-    level: "Intermediate",
-    projects: ["User Management Systems", "Inventory Trackers"],
-    status: "Optimizing complex queries"
-  },
-  {
-    id: "git",
-    name: "Git",
-    icon: GitBranch,
-    color: "from-[#F05032]/40 to-[#F05032]/10",
-    glowColor: "shadow-[0_0_30px_rgba(240,80,50,0.4)]",
-    description: "A free and open source distributed version control system.",
-    level: "Advanced",
-    projects: ["All Repositories"],
-    status: "Using daily"
-  },
-  {
-    id: "github",
-    name: "GitHub",
-    icon: GitFork,
-    color: "from-white/40 to-white/10",
-    glowColor: "shadow-[0_0_30px_rgba(255,255,255,0.4)]",
-    description: "A platform for software development and version control.",
-    level: "Advanced",
-    projects: ["Open Source Contributions"],
-    status: "Using daily"
-  },
-  {
-    id: "vscode",
-    name: "VS Code",
-    icon: Monitor,
-    color: "from-[#007ACC]/40 to-[#007ACC]/10",
-    glowColor: "shadow-[0_0_30px_rgba(0,122,204,0.4)]",
-    description: "A streamlined code editor with robust extension support.",
-    level: "Advanced",
-    projects: ["Daily Development"],
-    status: "Primary IDE"
-  },
-  {
-    id: "figma",
-    name: "Figma",
-    icon: PenTool,
-    color: "from-[#F24E1E]/40 to-[#F24E1E]/10",
-    glowColor: "shadow-[0_0_30px_rgba(242,78,30,0.4)]",
-    description: "A collaborative web application for interface design.",
-    level: "Intermediate",
-    projects: ["Portfolio Design", "App Mockups"],
-    status: "Creating design systems"
-  },
-  {
-    id: "ai",
-    name: "AI",
-    icon: BrainCircuit,
-    color: "from-[#7C6BFF]/40 to-[#7C6BFF]/10",
-    glowColor: "shadow-[0_0_30px_rgba(124,107,255,0.4)]",
-    description: "Artificial Intelligence and Machine Learning paradigms.",
-    level: "Beginner",
-    projects: ["Generative AI Experiments"],
-    status: "Actively studying"
-  },
-  {
-    id: "dsa",
-    name: "DSA",
-    icon: Network,
-    color: "from-[#FF4500]/40 to-[#FF4500]/10",
-    glowColor: "shadow-[0_0_30px_rgba(255,69,0,0.4)]",
-    description: "Core computer science concepts for optimized code.",
-    level: "Intermediate",
-    projects: ["Competitive Programming"],
-    status: "Solving daily problems"
-  }
-];
+import { subscribeToSkills } from '../../services/skillsService';
+import * as Icons from 'lucide-react';
 
 const TechCard = ({ tech }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -224,11 +31,32 @@ const TechCard = ({ tech }) => {
         >
           <motion.div 
             layout 
-            className={`flex items-center justify-center rounded-2xl bg-gradient-to-br ${tech.color} shadow-lg border border-white/10 ${
+            className={`flex items-center justify-center rounded-2xl bg-gradient-to-br ${tech.color} shadow-lg border border-white/10 overflow-hidden ${
               isHovered ? 'w-12 h-12' : 'w-12 h-12 sm:w-14 sm:h-14'
             }`}
           >
-            <Icon className="text-white w-6 h-6 sm:w-7 sm:h-7" />
+            {tech.imageUrl ? (
+              <>
+                <img 
+                  src={tech.imageUrl} 
+                  alt={tech.name} 
+                  className="w-full h-full object-contain p-2"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    if (e.target.nextSibling) {
+                      e.target.nextSibling.style.display = 'block';
+                    }
+                  }}
+                />
+                <Icon 
+                  className="text-white w-6 h-6 sm:w-7 sm:h-7" 
+                  style={{ display: 'none' }}
+                />
+              </>
+            ) : (
+              <Icon className="text-white w-6 h-6 sm:w-7 sm:h-7" />
+            )}
           </motion.div>
           <motion.h3 
             layout 
@@ -281,6 +109,42 @@ const TechCard = ({ tech }) => {
 };
 
 const TechStack = () => {
+  const [technologies, setTechnologies] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const unsubscribe = subscribeToSkills((data) => {
+      const mapped = data.map(skill => {
+        let projectsArr = [];
+        if (Array.isArray(skill.projects)) {
+          projectsArr = skill.projects;
+        } else if (typeof skill.projects === 'string' && skill.projects.trim()) {
+          projectsArr = skill.projects.split(',').map(s => s.trim());
+        }
+
+        const color = skill.color || "from-[#7C6BFF]/40 to-[#7C6BFF]/10";
+        const glowColor = skill.glowColor || "shadow-[0_0_30px_rgba(124,107,255,0.4)]";
+        const Icon = Icons[skill.icon] || Icons.Code2;
+
+        return {
+          id: skill.id,
+          name: skill.title || skill.name || 'Unknown',
+          icon: Icon,
+          imageUrl: skill.imageUrl || skill.image || '',
+          color,
+          glowColor,
+          description: skill.about || skill.description || 'No description provided.',
+          level: skill.proficiency || skill.level || 'Intermediate',
+          projects: projectsArr.length ? projectsArr : ['No projects listed'],
+          status: skill.status || 'Active'
+        };
+      });
+      setTechnologies(mapped);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
   return (
     <section id="skills" className="relative py-32 min-h-screen overflow-hidden">
       {/* Background glow & particles */}
@@ -334,17 +198,28 @@ const TechStack = () => {
         </div>
 
         {/* Flow Container */}
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3, duration: 0.7 }}
-          className="flex flex-wrap items-center justify-center gap-4 sm:gap-6"
-        >
-          {technologies.map((tech) => (
-            <TechCard key={tech.id} tech={tech} />
-          ))}
-        </motion.div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-24 text-white/50">
+            <Icons.Loader2 className="w-8 h-8 animate-spin" />
+            <span className="ml-3">Loading technologies...</span>
+          </div>
+        ) : technologies.length === 0 ? (
+          <div className="text-center py-16 text-white/30">
+            No technologies found. Please add them from the admin panel.
+          </div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.7 }}
+            className="flex flex-wrap items-center justify-center gap-4 sm:gap-6"
+          >
+            {technologies.map((tech) => (
+              <TechCard key={tech.id} tech={tech} />
+            ))}
+          </motion.div>
+        )}
       </div>
     </section>
   );

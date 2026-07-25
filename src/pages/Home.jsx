@@ -9,7 +9,6 @@ import Achievements from '../components/sections/Achievements';
 import Certificates from '../components/sections/Certificates';
 import Services from '../components/sections/Services';
 import Testimonials from '../components/sections/Testimonials';
-import GithubStats from '../components/sections/GithubStats';
 import Contact from '../components/sections/Contact';
 
 const Home = () => {
@@ -25,7 +24,6 @@ const Home = () => {
       <Certificates />
       <Services />
       <Testimonials />
-      <GithubStats />
       <Contact />
     </div>
   );

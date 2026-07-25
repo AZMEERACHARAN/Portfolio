@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Terminal, Code, Layout, Blocks, Rocket, Milestone, Briefcase } from 'lucide-react';
-import { getExperienceData } from '../../services/experienceApi';
+import { subscribeToExperience } from '../../services/experienceService';
 
 const Experience = () => {
   const [experienceData, setExperienceData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadExperience = () => {
-      const data = getExperienceData();
-      setExperienceData(data || []);
-    };
-    loadExperience();
-    window.addEventListener('storage', loadExperience);
-    return () => window.removeEventListener('storage', loadExperience);
+    const unsubscribe = subscribeToExperience((data) => {
+      setExperienceData(data);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -58,7 +57,12 @@ const Experience = () => {
           </motion.p>
         </div>
 
-        {experienceData.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin mb-4" />
+            <p className="text-white/40 text-sm">Loading experience...</p>
+          </div>
+        ) : experienceData.length === 0 ? (
           <div className="text-center text-white/40 py-20">
             No experience records added yet. Add them in the admin panel.
           </div>
@@ -84,15 +88,17 @@ const Experience = () => {
                       <Briefcase className="w-6 h-6 text-white" />
                     </div>
                     <span className="text-[10px] font-mono text-white/50 uppercase tracking-widest px-3 py-1 rounded-full bg-white/5 border border-white/5">
-                      {item.duration}
+                      {item.startDate && (item.currentlyWorking || item.endDate) 
+                        ? `${item.startDate} - ${item.currentlyWorking ? 'Present' : item.endDate}` 
+                        : item.duration}
                     </span>
                   </div>
                   
                   <h3 className="text-xl font-bold text-white mb-1 group-hover:text-primary-2 transition-colors">
-                    {item.position}
+                    {item.role || item.position}
                   </h3>
                   <h4 className="text-sm font-medium text-primary mb-3">
-                    {item.organization}
+                    {item.company || item.organization}
                   </h4>
                   
                   <p className="text-sm text-white/60 leading-relaxed flex-grow whitespace-pre-wrap">
