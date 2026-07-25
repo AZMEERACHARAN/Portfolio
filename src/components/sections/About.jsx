@@ -8,6 +8,8 @@ const ICONS = {
 };
 
 const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -15,7 +17,8 @@ const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) 
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ scale: 1.02 }}
-      className={`relative group p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 backdrop-blur-md transition-all duration-500 shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(124,107,255,0.15)] overflow-hidden h-full flex flex-col justify-center ${fullWidth ? 'md:col-span-2' : ''}`}
+      onClick={() => setIsExpanded(!isExpanded)}
+      className={`relative group p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 backdrop-blur-md transition-all duration-500 shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(124,107,255,0.15)] overflow-hidden h-full flex flex-col justify-center cursor-pointer ${fullWidth ? 'md:col-span-2' : ''}`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
       
@@ -31,9 +34,9 @@ const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) 
           <h3 className="font-heading font-semibold text-lg text-white/90 group-hover:text-white transition-colors">{title}</h3>
         </div>
         
-        <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-500 ease-in-out">
+        <div className={`grid transition-[grid-template-rows] duration-500 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr] lg:group-hover:grid-rows-[1fr]'}`}>
           <div className="overflow-hidden">
-            <div className="pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+            <div className={`pt-4 transition-opacity duration-500 delay-100 ${isExpanded ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}`}>
               {description && (
                 <p className="text-sm font-sans text-text-muted leading-relaxed">
                   {description}
@@ -41,7 +44,7 @@ const AboutCard = ({ title, icon: Icon, description, delay, items, fullWidth }) 
               )}
               
               {items && (
-                <ul className="space-y-2">
+                <ul className="space-y-2 mt-3">
                   {items.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm font-sans text-white/80">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(124,107,255,0.8)]" />

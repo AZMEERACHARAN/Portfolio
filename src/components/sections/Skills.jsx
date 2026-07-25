@@ -177,7 +177,7 @@ const Skills = () => {
               animate={{ opacity: 1, scale: 1, y: '-50%', x: '-50%' }}
               exit={{ opacity: 0, scale: 0.9, y: '-40%', x: '-50%' }}
               transition={{ duration: 0.3 }}
-              className="hidden md:flex flex-col items-center justify-center fixed left-1/2 top-1/2 z-[100] pointer-events-none w-80 p-8 rounded-3xl bg-[#0a0d1c]/95 backdrop-blur-2xl border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+              className="flex flex-col items-center justify-center fixed left-1/2 top-1/2 z-[100] pointer-events-none w-[90vw] sm:w-80 p-6 sm:p-8 rounded-3xl bg-[#0a0d1c]/95 backdrop-blur-2xl border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
             >
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent-2/20 border border-white/10 flex items-center justify-center mb-6 shadow-inner">
                 <Sparkles className="w-8 h-8 text-primary" />
