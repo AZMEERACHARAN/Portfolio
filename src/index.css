@@ -64,44 +64,50 @@
   }
 
   /* Override hard-coded dark bg classes in light mode */
+  /* Base Dark Backgrounds -> Light Mode Base (#f4f5f9) */
   html.light .bg-\[\#030308\],
-  html.light .bg-\[\#030308\]\/95 {
-    background-color: #f0f1f7 !important;
-  }
-  html.light .bg-\[\#0a0a0f\] {
-    background-color: #e8eaf2 !important;
-  }
-  html.light .bg-\[\#060812\] {
+  html.light .bg-\[\#030308\]\/80,
+  html.light .bg-\[\#030308\]\/95,
+  html.light .bg-\[\#050711\],
+  html.light .bg-\[\#060812\],
+  html.light .bg-\[\#060812\]\/95,
+  html.light .bg-\[\#060a16\],
+  html.light .bg-\[\#0a0d1c\],
+  html.light .bg-\[\#0a0d1c\]\/50,
+  html.light .bg-\[\#0a0d1c\]\/70,
+  html.light .bg-\[\#0a0d1c\]\/95,
+  html.light .bg-black,
+  html.light .bg-black\/20,
+  html.light .bg-black\/40,
+  html.light .bg-black\/50,
+  html.light .bg-black\/60,
+  html.light .bg-black\/90 {
     background-color: #f4f5f9 !important;
   }
 
-  /* Text colour overrides */
-  html.light .text-white {
-    color: #0f1117 !important;
-  }
-  html.light .text-white\/70 {
-    color: rgba(15, 17, 23, 0.7) !important;
-  }
-  html.light .text-white\/60 {
-    color: rgba(15, 17, 23, 0.6) !important;
-  }
-  html.light .text-white\/40 {
-    color: rgba(15, 17, 23, 0.4) !important;
-  }
-  html.light .text-white\/30 {
-    color: rgba(15, 17, 23, 0.3) !important;
-  }
-
-  /* Border overrides */
-  html.light .border-white\/10 {
-    border-color: rgba(0, 0, 0, 0.1) !important;
-  }
-  html.light .border-white\/5 {
-    border-color: rgba(0, 0, 0, 0.06) !important;
+  /* Elevated Dark Backgrounds -> Light Mode Surface (#ffffff) */
+  html.light .bg-\[\#080b18\],
+  html.light .bg-\[\#080b18\]\/80,
+  html.light .bg-\[\#080b18\]\/90,
+  html.light .bg-\[\#0a0a0f\],
+  html.light .bg-\[\#0a0a0f\]\/60,
+  html.light .bg-\[\#0a0a0f\]\/80,
+  html.light .bg-\[\#0b0f1e\],
+  html.light .bg-\[\#0b0f1e\]\/50,
+  html.light .bg-\[\#0b0f1e\]\/80,
+  html.light .bg-\[\#0b0f1e\]\/90,
+  html.light .bg-\[\#0b0f1e\]\/95,
+  html.light .bg-\[\#0b0f1e\]\/98,
+  html.light .bg-\[\#0f1020\],
+  html.light .bg-\[\#0f1123\] {
+    background-color: #ffffff !important;
   }
 
-  /* Background overrides */
-  html.light .bg-white\/5 {
+  /* White/Glass Overlay Backgrounds -> Black Overlay equivalents for Light Mode */
+  html.light .bg-white\/4,
+  html.light .bg-white\/5,
+  html.light .bg-white\/8,
+  html.light .bg-gray-500\/20 {
     background-color: rgba(0, 0, 0, 0.04) !important;
   }
   html.light .bg-white\/10 {
@@ -109,6 +115,79 @@
   }
   html.light .bg-white\/20 {
     background-color: rgba(0, 0, 0, 0.12) !important;
+  }
+  html.light .bg-white\/40 {
+    background-color: rgba(0, 0, 0, 0.20) !important;
+  }
+  html.light .bg-white {
+    background-color: #ffffff !important;
+  }
+
+  /* Text colour overrides */
+  html.light .text-white {
+    color: #0f1117 !important;
+  }
+  html.light .text-white\/90,
+  html.light .text-white\/80,
+  html.light .text-white\/70,
+  html.light .text-gray-400 {
+    color: #5c6070 !important;
+  }
+  html.light .text-white\/60,
+  html.light .text-white\/50,
+  html.light .text-white\/40 {
+    color: rgba(15, 17, 23, 0.6) !important;
+  }
+  html.light .text-white\/30,
+  html.light .text-white\/25,
+  html.light .text-white\/20,
+  html.light .text-white\/10 {
+    color: rgba(15, 17, 23, 0.4) !important;
+  }
+
+  /* Border overrides */
+  html.light .border-\[\#050711\],
+  html.light .border-\[\#080b18\],
+  html.light .border-\[\#0a0a18\],
+  html.light .border-white\/30,
+  html.light .border-white\/20,
+  html.light .border-white\/15,
+  html.light .border-white\/12,
+  html.light .border-white\/10,
+  html.light .border-white\/8,
+  html.light .border-white\/6,
+  html.light .border-white\/5,
+  html.light .border-gray-500\/20 {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+  }
+  html.light .border-white {
+    border-color: rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Gradient Overrides */
+  html.light .from-\[\#030308\],
+  html.light .from-\[\#0a0a0f\],
+  html.light .from-black,
+  html.light .from-black\/80 {
+    --tw-gradient-from: #f4f5f9 var(--tw-gradient-from-position);
+    --tw-gradient-to: rgba(244, 245, 249, 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.light .from-white\/10 {
+    --tw-gradient-from: rgba(0,0,0,0.05) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgba(0,0,0,0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+  html.light .via-white\/40,
+  html.light .via-white\/20,
+  html.light .via-white\/10,
+  html.light .via-white\/5 {
+    --tw-gradient-via-stops: var(--tw-gradient-from), rgba(0,0,0,0.05) var(--tw-gradient-via-position), var(--tw-gradient-to);
+    --tw-gradient-stops: var(--tw-gradient-via-stops) !important;
+  }
+  html.light .to-white\/10,
+  html.light .to-\[\#7C6BFF\]\/10 {
+    --tw-gradient-to: rgba(0,0,0,0.05) var(--tw-gradient-to-position);
   }
 
   /* Backdrop / glass */
