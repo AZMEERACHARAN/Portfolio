@@ -6,29 +6,29 @@ import { subscribeToTestimonials } from '../../services/testimonialsService';
 
 
 const TestimonialCard = ({ testimonial }) => (
-  <div className="w-[85vw] max-w-[350px] sm:max-w-[400px] flex-shrink-0 glass p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 mx-3 sm:mx-4 whitespace-normal flex flex-col h-auto">
+  <div className="w-[85vw] max-w-[350px] sm:max-w-[400px] flex-shrink-0 glass p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-white/20 transition-all duration-300 mx-3 sm:mx-4 whitespace-normal flex flex-col h-full">
     <div className="flex justify-between items-start mb-6 gap-2">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
         <img 
           src={testimonial.profileImage} 
           alt={testimonial.name} 
           loading="lazy"
           decoding="async"
-          className="w-14 h-14 rounded-full object-cover border-2 border-primary/50"
+          className="w-14 h-14 rounded-full object-cover border-2 border-primary/50 flex-shrink-0"
         />
-        <div>
-          <h4 className="text-white font-bold">{testimonial.name}</h4>
-          <p className="text-xs text-text-muted">
+        <div className="flex-1 min-w-0">
+          <h4 className="text-white font-bold break-words">{testimonial.name}</h4>
+          <p className="text-xs text-text-muted break-words">
             {testimonial.role} {testimonial.organization && `at ${testimonial.organization}`}
           </p>
         </div>
       </div>
-      <MessageSquareQuote className="w-8 h-8 text-primary/30" />
+      <MessageSquareQuote className="w-8 h-8 text-primary/30 flex-shrink-0" />
     </div>
-    <p className="text-white/70 text-sm leading-relaxed mb-6 italic">
+    <p className="text-white/70 text-sm leading-relaxed mb-6 italic flex-grow break-words">
       "{testimonial.message}"
     </p>
-    <div className="flex gap-1">
+    <div className="flex gap-1 mt-auto flex-shrink-0">
       {[...Array(5)].map((_, i) => (
         <Star 
           key={i} 
@@ -109,7 +109,7 @@ const Testimonials = () => {
           <motion.div 
             animate={{ x: ["0%", "-50%"] }}
             transition={{ ease: "linear", duration: 25, repeat: Infinity }}
-            className="flex whitespace-nowrap"
+            className="flex items-stretch whitespace-nowrap py-4"
             style={{ width: "fit-content" }}
           >
             {/* Duplicate the array to create seamless loop */}
