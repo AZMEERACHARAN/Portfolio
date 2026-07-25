@@ -283,7 +283,7 @@ const Navbar = () => {
               initial="initial"
               animate="open"
               exit="initial"
-              className="flex-grow flex flex-col justify-center px-8 space-y-6"
+              className="flex-grow flex flex-col px-8 space-y-4 sm:space-y-6 py-4 overflow-y-auto pb-24"
             >
               {navLinks.map((link) => (
                 <div key={link.name} className="overflow-hidden">

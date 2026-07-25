@@ -7,6 +7,13 @@ import AdminHeader  from '../components/admin/AdminHeader';
 const AdminLayout = () => {
   const [collapsed,   setCollapsed]   = useState(false);
   const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const sidebarW = collapsed ? 72 : 260;
 
@@ -28,7 +35,7 @@ const AdminLayout = () => {
 
       {/* Main area — shifts right when sidebar expands */}
       <motion.div
-        animate={{ marginLeft: sidebarW }}
+        animate={{ marginLeft: isMobile ? 0 : sidebarW }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         className="flex-1 flex flex-col min-h-screen relative z-10 lg:ml-0"
         style={{ marginLeft: 0 /* overridden on lg by motion */ }}

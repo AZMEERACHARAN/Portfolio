@@ -113,7 +113,7 @@ const MagneticButton = ({ children, className, href }) => {
   );
 };
 
-const FloatingBadge = ({ icon: Icon, text, delay, style, yAnim }) => (
+const FloatingBadge = ({ icon: Icon, text, delay, style, yAnim, className = "" }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0 }}
     animate={{ opacity: 1, scale: 1, y: yAnim || [-5, 5, -5] }}
@@ -122,7 +122,7 @@ const FloatingBadge = ({ icon: Icon, text, delay, style, yAnim }) => (
       scale: { delay, type: "spring", stiffness: 200, damping: 20 },
       y: { duration: Math.random() * 2 + 4, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
     }}
-    className="absolute z-20 flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0a0a0f]/80 border border-white/10 backdrop-blur-xl shadow-[0_10px_20px_rgba(0,0,0,0.3)]"
+    className={`absolute z-20 flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0a0a0f]/80 border border-white/10 backdrop-blur-xl shadow-[0_10px_20px_rgba(0,0,0,0.3)] ${className}`}
     style={{ ...style, transform: "translateZ(70px)" }} // 3D pop effect
   >
     {Icon && <Icon className="w-4 h-4 text-primary-2" />}
@@ -390,12 +390,12 @@ const Hero = () => {
                 </div>
 
                 {/* Floating Technology Badges */}
-                <FloatingBadge text="React" icon={Code} delay={0.5} style={{ top: '15%', left: '-8%' }} yAnim={[-4, 4, -4]} />
+                <FloatingBadge text="React" icon={Code} delay={0.5} style={{ top: '15%', left: '-8%' }} yAnim={[-4, 4, -4]} className="hidden md:flex" />
                 <FloatingBadge text="JavaScript" icon={Terminal} delay={0.7} style={{ top: '5%', right: '5%' }} yAnim={[-6, 6, -6]} />
-                <FloatingBadge text="Tailwind CSS" delay={0.9} style={{ bottom: '25%', left: '-12%' }} yAnim={[-3, 3, -3]} />
+                <FloatingBadge text="Tailwind CSS" delay={0.9} style={{ bottom: '25%', left: '-12%' }} yAnim={[-3, 3, -3]} className="hidden md:flex" />
                 <FloatingBadge text="AI" icon={Sparkles} delay={1.1} style={{ bottom: '15%', right: '-5%' }} yAnim={[-5, 5, -5]} />
-                <FloatingBadge text="Python" delay={1.3} style={{ top: '40%', right: '-15%' }} yAnim={[-7, 7, -7]} />
-                <FloatingBadge text="Node.js" icon={Database} delay={1.5} style={{ top: '35%', left: '-15%' }} yAnim={[-4, 4, -4]} />
+                <FloatingBadge text="Python" delay={1.3} style={{ top: '40%', right: '-15%' }} yAnim={[-7, 7, -7]} className="hidden md:flex" />
+                <FloatingBadge text="Node.js" icon={Database} delay={1.5} style={{ top: '35%', left: '-15%' }} yAnim={[-4, 4, -4]} className="hidden md:flex" />
                 <FloatingBadge text="Git" delay={1.7} style={{ bottom: '-5%', left: '20%' }} yAnim={[-3, 3, -3]} />
                 <FloatingBadge text="GitHub" delay={1.9} style={{ bottom: '5%', right: '20%' }} yAnim={[-5, 5, -5]} />
               </div>
