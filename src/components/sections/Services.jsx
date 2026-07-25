@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Code2, Smartphone, Layout, Palette, Briefcase, Zap } from 'lucide-react';
-import { usePortfolioData } from '../../hooks/usePortfolioData';
+import { Code2, Smartphone, Layout, Palette, Briefcase, Zap, Loader2 } from 'lucide-react';
+import { subscribeToServices } from '../../services/servicesService';
 
 const SERVICE_COLORS = [
   { color: 'from-blue-500 to-cyan-500', shadow: 'shadow-blue-500/20' },
@@ -17,7 +17,29 @@ const ICONS = {
 };
 
 const Services = () => {
-  const services = usePortfolioData('servicesData') || [];
+  const [services, setServices] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const unsubscribe = subscribeToServices((data) => {
+      const activeServices = data
+        .filter(s => s.isActive !== false)
+        .sort((a, b) => {
+          const orderA = a.displayOrder || 0;
+          const orderB = b.displayOrder || 0;
+          if (orderA !== orderB) {
+            return orderA - orderB;
+          }
+          const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return timeB - timeA;
+        });
+      setServices(activeServices);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <section id="services" className="py-32 relative">
       {/* Background Decor */}
@@ -62,45 +84,55 @@ const Services = () => {
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {services.map((service, index) => {
-            const ServiceIcon = ICONS[service.icon] || Code2;
-            const style = SERVICE_COLORS[index % SERVICE_COLORS.length];
-            return (
-            <motion.div
-              key={service.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="group relative"
-            >
-              {/* Gradient Border Glow (visible on hover) */}
-              <div className={`absolute -inset-[1px] rounded-3xl bg-gradient-to-br ${style.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-[2px]`} />
-              
-              <div className="relative h-full glass p-8 rounded-3xl border border-white/10 bg-[#0b0f1e]/90 hover:bg-[#060812]/95 transition-colors overflow-hidden flex flex-col">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          </div>
+        ) : services.length === 0 ? (
+          <div className="flex justify-center items-center py-20">
+            <p className="text-white/40 text-sm">No services available yet.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {services.map((service, index) => {
+              const ServiceIcon = ICONS[service.icon] || Code2;
+              const style = SERVICE_COLORS[index % SERVICE_COLORS.length];
+              return (
+              <motion.div
+                key={service.id || service.title || index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+                className="group relative"
+              >
+                {/* Gradient Border Glow (visible on hover) */}
+                <div className={`absolute -inset-[1px] rounded-3xl bg-gradient-to-br ${style.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-[2px]`} />
                 
-                {/* Background Pattern */}
-                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 group-hover:scale-150 group-hover:rotate-12 transform origin-top-right">
-                  <ServiceIcon className="w-48 h-48" />
-                </div>
+                <div className="relative h-full glass p-8 rounded-3xl border border-white/10 bg-[#0b0f1e]/90 hover:bg-[#060812]/95 transition-colors overflow-hidden flex flex-col">
+                  
+                  {/* Background Pattern */}
+                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 group-hover:scale-150 group-hover:rotate-12 transform origin-top-right">
+                    <ServiceIcon className="w-48 h-48" />
+                  </div>
 
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${style.color} mb-6 shadow-lg ${style.shadow} group-hover:scale-110 transition-transform duration-500`}>
-                  <ServiceIcon className="w-6 h-6 text-white" />
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${style.color} mb-6 shadow-lg ${style.shadow} group-hover:scale-110 transition-transform duration-500`}>
+                    <ServiceIcon className="w-6 h-6 text-white" />
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary-2 transition-colors z-10">
+                    {service.title}
+                  </h3>
+                  
+                  <p className="text-white/60 text-sm leading-relaxed z-10">
+                    {service.description}
+                  </p>
                 </div>
-                
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-primary-2 transition-colors z-10">
-                  {service.title}
-                </h3>
-                
-                <p className="text-white/60 text-sm leading-relaxed z-10">
-                  {service.description}
-                </p>
-              </div>
-            </motion.div>
-            );
-          })}
-        </div>
+              </motion.div>
+              );
+            })}
+          </div>
+        )}
 
       </div>
     </section>
