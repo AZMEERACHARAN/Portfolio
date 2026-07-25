@@ -266,44 +266,49 @@ const Navbar = () => {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="fixed inset-0 z-[60] bg-[#030308]/95 backdrop-blur-3xl origin-top flex flex-col"
+            className="fixed inset-0 z-[60] bg-[#030308]/95 backdrop-blur-3xl origin-top flex flex-col h-[100dvh]"
           >
-            <div className="flex items-center justify-between px-8 py-8 border-b border-white/10">
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 flex items-center justify-between px-6 py-6 border-b border-white/10">
               <Logo variant="mobile" />
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-3 bg-white/5 rounded-full text-white hover:bg-white/10 transition-colors"
+                className="p-2 bg-white/5 rounded-full text-white hover:bg-white/10 transition-colors"
+                aria-label="Close menu"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             
+            {/* Scrollable Content */}
             <motion.div 
               variants={containerVars}
               initial="initial"
               animate="open"
               exit="initial"
-              className="flex-grow flex flex-col px-8 space-y-4 sm:space-y-6 py-4 overflow-y-auto pb-24"
+              className="flex-grow flex flex-col px-6 py-4 overflow-y-auto"
             >
-              {navLinks.map((link) => (
-                <div key={link.name} className="overflow-hidden">
-                  <motion.a
-                    variants={linkVars}
-                    href={link.href}
-                    onClick={(e) => scrollToSection(e, link.href)}
-                    className="block text-4xl font-display font-medium text-white/70 hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </motion.a>
-                </div>
-              ))}
+              <div className="flex flex-col space-y-1 sm:space-y-2 pb-6">
+                {navLinks.map((link) => (
+                  <div key={link.name} className="overflow-hidden">
+                    <motion.a
+                      variants={linkVars}
+                      href={link.href}
+                      onClick={(e) => scrollToSection(e, link.href)}
+                      className="block text-[20px] leading-relaxed font-display font-medium text-white/80 hover:text-white transition-colors py-2"
+                    >
+                      {link.name}
+                    </motion.a>
+                  </div>
+                ))}
+              </div>
               
-              <div className="overflow-hidden pt-8 mt-8 border-t border-white/10">
+              <div className="mt-auto pt-6 pb-12 border-t border-white/10">
                 <motion.a
                   variants={linkVars}
                   href="#contact"
                   onClick={(e) => scrollToSection(e, '#contact')}
-                  className="inline-flex items-center justify-center w-full py-4 text-lg font-semibold text-white bg-gradient-to-r from-primary to-accent-2 rounded-2xl hover:shadow-[0_0_30px_rgba(124,107,255,0.4)] transition-shadow"
+                  className="inline-flex items-center justify-center w-full py-4 text-base font-semibold text-white bg-gradient-to-r from-primary to-accent-2 rounded-2xl hover:shadow-[0_0_30px_rgba(124,107,255,0.4)] transition-shadow"
                 >
                   Let's Connect
                 </motion.a>
