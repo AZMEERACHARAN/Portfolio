@@ -137,6 +137,9 @@ const Hero = React.memo(() => {
   const [settings, setSettings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Must be called at the top level to obey rules of hooks
+  const spotlightBg = useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(124, 107, 255, 0.05), transparent 40%)`;
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       mouseX.set(e.clientX);
@@ -196,7 +199,7 @@ const Hero = React.memo(() => {
       <motion.div 
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300 hidden md:block"
         style={{
-          background: useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(124, 107, 255, 0.05), transparent 40%)`
+          background: spotlightBg
         }}
       />
 
