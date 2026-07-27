@@ -90,6 +90,8 @@ const Navbar = React.memo(() => {
   };
 
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
       const sections = navLinks.map(link => link.name.toLowerCase());
       const scrollPosition = window.scrollY + 300;
@@ -103,8 +105,18 @@ const Navbar = React.memo(() => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const scrollToSection = (e, href) => {

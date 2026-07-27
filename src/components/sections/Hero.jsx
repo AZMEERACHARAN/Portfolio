@@ -141,11 +141,18 @@ const Hero = React.memo(() => {
   const spotlightBg = useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(124, 107, 255, 0.05), transparent 40%)`;
 
   useEffect(() => {
+    let ticking = false;
     const handleMouseMove = (e) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          mouseX.set(e.clientX);
+          mouseY.set(e.clientY);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     
     let isHeroLoaded = false;
     let isSettingsLoaded = false;
