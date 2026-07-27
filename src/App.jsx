@@ -31,16 +31,41 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(() => {
     return !sessionStorage.getItem('hasSeenWelcome');
   });
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [isAppReady, setIsAppReady] = useState(() => document.readyState === 'complete');
 
   useEffect(() => {
     if (showWelcome) {
       const timer = setTimeout(() => {
-        setShowWelcome(false);
-        sessionStorage.setItem('hasSeenWelcome', 'true');
-      }, 2500);
+        setMinTimeElapsed(true);
+      }, 3500);
       return () => clearTimeout(timer);
     }
   }, [showWelcome]);
+
+  useEffect(() => {
+    if (!showWelcome || isAppReady) return;
+    
+    const handleLoad = () => setIsAppReady(true);
+    
+    if (document.readyState === 'complete') {
+      setIsAppReady(true);
+    } else {
+      window.addEventListener('load', handleLoad);
+      const fallback = setTimeout(() => setIsAppReady(true), 8000); 
+      return () => {
+        window.removeEventListener('load', handleLoad);
+        clearTimeout(fallback);
+      };
+    }
+  }, [showWelcome, isAppReady]);
+
+  useEffect(() => {
+    if (showWelcome && minTimeElapsed && isAppReady) {
+      setShowWelcome(false);
+      sessionStorage.setItem('hasSeenWelcome', 'true');
+    }
+  }, [showWelcome, minTimeElapsed, isAppReady]);
 
   useEffect(() => {
     // Ensure all localStorage keys have their default values if empty
