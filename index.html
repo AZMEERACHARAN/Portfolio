@@ -23,7 +23,7 @@
       (function() {
         try {
           var localTheme = localStorage.getItem('portfolio-theme');
-          var theme = localTheme ? localTheme : 'dark';
+          var theme = (localTheme === 'light') ? 'light' : 'dark';
           
           if (theme === 'light') {
             document.documentElement.classList.add('light');
