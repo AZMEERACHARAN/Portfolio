@@ -23,17 +23,7 @@
       (function() {
         try {
           var localTheme = localStorage.getItem('portfolio-theme');
-          var settingsStr = localStorage.getItem('websiteSettings');
-          var theme = 'dark'; // Dark Mode default
-          
-          if (localTheme) {
-            theme = localTheme;
-          } else if (settingsStr) {
-            var parsed = JSON.parse(settingsStr);
-            if (parsed && parsed.theme) {
-              theme = parsed.theme;
-            }
-          }
+          var theme = localTheme ? localTheme : 'dark';
           
           if (theme === 'light') {
             document.documentElement.classList.add('light');

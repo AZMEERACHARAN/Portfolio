@@ -84,14 +84,6 @@ function App() {
       if (settings.primaryColor) document.documentElement.style.setProperty('--primary', settings.primaryColor);
       if (settings.secondaryColor) document.documentElement.style.setProperty('--accent-2', settings.secondaryColor);
       if (settings.accentColor) document.documentElement.style.setProperty('--accent', settings.accentColor);
-      
-      if (settings.theme === 'light') {
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
-      } else {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      }
     }
   }, [settings]);
 
