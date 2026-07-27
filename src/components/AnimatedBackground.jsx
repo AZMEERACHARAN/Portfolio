@@ -207,13 +207,29 @@ const AnimatedBackground = React.memo(() => {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-    // Handle viewport resizing
+    // Handle viewport resizing (debounced and checked for width changes)
+    let lastWidth = window.innerWidth;
+    let resizeTimeout;
+    
     const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-      particleCount = getParticleCount(width);
-      connectionDistance = getConnectionDistance(width);
-      initParticles();
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      
+      resizeTimeout = setTimeout(() => {
+        const currentWidth = window.innerWidth;
+        // On mobile, height changes as the URL bar hides/shows on scroll.
+        // We should only reinitialize particles if the width changes (orientation change or desktop resize)
+        if (currentWidth !== lastWidth) {
+          lastWidth = currentWidth;
+          width = canvas.width = currentWidth;
+          height = canvas.height = window.innerHeight;
+          particleCount = getParticleCount(width);
+          connectionDistance = getConnectionDistance(width);
+          initParticles();
+        } else {
+          // Just update height without resetting everything to prevent crashing
+          height = canvas.height = window.innerHeight;
+        }
+      }, 150);
     };
     window.addEventListener('resize', handleResize);
 
@@ -278,6 +294,7 @@ const AnimatedBackground = React.memo(() => {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('resize', handleResize);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
       observer.disconnect();
     };
   }, []);

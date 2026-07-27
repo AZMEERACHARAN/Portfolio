@@ -201,29 +201,33 @@ const INITIAL_DATA = {
  * Initialize localStorage with default data if empty.
  */
 export const initializeData = () => {
-  Object.keys(INITIAL_DATA).forEach((key) => {
-    const existing = localStorage.getItem(key);
-    if (!existing) {
-      localStorage.setItem(key, JSON.stringify(INITIAL_DATA[key]));
-    } else if (key === 'websiteSettings' || key === 'heroData' || key === 'aboutData') {
-      // Merge missing keys for objects that might have been updated with new schema
-      try {
-        const parsed = JSON.parse(existing);
-        let updated = false;
-        Object.keys(INITIAL_DATA[key]).forEach(subKey => {
-          if (parsed[subKey] === undefined) {
-            parsed[subKey] = INITIAL_DATA[key][subKey];
-            updated = true;
+  try {
+    Object.keys(INITIAL_DATA).forEach((key) => {
+      const existing = localStorage.getItem(key);
+      if (!existing) {
+        localStorage.setItem(key, JSON.stringify(INITIAL_DATA[key]));
+      } else if (key === 'websiteSettings' || key === 'heroData' || key === 'aboutData') {
+        // Merge missing keys for objects that might have been updated with new schema
+        try {
+          const parsed = JSON.parse(existing);
+          let updated = false;
+          Object.keys(INITIAL_DATA[key]).forEach(subKey => {
+            if (parsed[subKey] === undefined) {
+              parsed[subKey] = INITIAL_DATA[key][subKey];
+              updated = true;
+            }
+          });
+          if (updated) {
+            localStorage.setItem(key, JSON.stringify(parsed));
           }
-        });
-        if (updated) {
-          localStorage.setItem(key, JSON.stringify(parsed));
+        } catch (e) {
+          console.error("Error merging data for " + key, e);
         }
-      } catch (e) {
-        console.error("Error merging data for " + key, e);
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error("Error accessing localStorage during initialization:", error);
+  }
 };
 
 /**
