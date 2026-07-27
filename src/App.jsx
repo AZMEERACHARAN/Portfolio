@@ -9,6 +9,7 @@ import WelcomeScreen from './components/WelcomeScreen';
 import PortfolioLayout from './layouts/PortfolioLayout';
 import Home            from './pages/Home';
 import PrivateRoute    from './components/admin/PrivateRoute';
+import ErrorBoundary   from './components/ErrorBoundary';
 
 const Login = lazy(() => import('./pages/Login'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
@@ -119,6 +120,7 @@ function App() {
         {showWelcome && <WelcomeScreen name={settings?.ownerName || "AZMEERA CHARAN"} />}
       </AnimatePresence>
       <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div></div>}>
+      <ErrorBoundary>
       <Routes>
         {/* Public */}
         <Route path="/" element={<PortfolioLayout />}>
@@ -145,6 +147,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
+      </ErrorBoundary>
       </Suspense>
       </BrowserRouter>
     </AuthProvider>

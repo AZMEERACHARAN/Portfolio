@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import legacy from '@vitejs/plugin-legacy'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    legacy({
+      targets: ['defaults', 'not IE 11', 'Chrome >= 64', 'Samsung >= 10', 'Safari >= 13', 'iOS >= 13'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime']
+    })
+  ],
   build: {
     rollupOptions: {
       output: {
