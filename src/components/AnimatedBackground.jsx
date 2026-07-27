@@ -25,7 +25,7 @@ const AnimatedBackground = React.memo(() => {
 
     // Helper to get colors based on light/dark mode
     const getThemeColors = () => {
-      // Check if light class is on html/body or prefers-color-scheme is light
+      // Check if light class is manually applied
       const isLightMode = 
         document.documentElement.classList.contains('light') || 
         document.body.classList.contains('light');
