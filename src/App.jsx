@@ -4,6 +4,8 @@ import { AuthProvider } from './context/AuthContext';
 import { initializeData } from './services/dataService';
 import { subscribeToSettings } from './services/settingsService';
 import { lazy, Suspense } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import WelcomeScreen from './components/WelcomeScreen';
 import PortfolioLayout from './layouts/PortfolioLayout';
 import Home            from './pages/Home';
 import PrivateRoute    from './components/admin/PrivateRoute';
@@ -26,6 +28,19 @@ const AdminAchievements = lazy(() => import('./pages/admin/AdminAchievements'));
 
 function App() {
   const [settings, setSettings] = useState(null);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !sessionStorage.getItem('hasSeenWelcome');
+  });
+
+  useEffect(() => {
+    if (showWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcome(false);
+        sessionStorage.setItem('hasSeenWelcome', 'true');
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome]);
 
   useEffect(() => {
     // Ensure all localStorage keys have their default values if empty
@@ -83,6 +98,9 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+      <AnimatePresence mode="wait">
+        {showWelcome && <WelcomeScreen name={settings?.ownerName || "AZMEERA CHARAN"} />}
+      </AnimatePresence>
       <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div></div>}>
       <Routes>
         {/* Public */}
